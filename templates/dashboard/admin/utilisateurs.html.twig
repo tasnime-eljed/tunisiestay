@@ -1,0 +1,153 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}ADMIN{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+{% block page_subtitle %}Membres inscrits sur la plateforme{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/admin/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+{# Flash messages #}
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+    <div class="ts-flash" style="
+        padding:14px 20px;margin-bottom:16px;border-radius:12px;font-size:14px;font-weight:600;
+        background:{{ type == 'success' ? '#D1FAE5' : '#FEE2E2' }};
+        color:{{ type == 'success' ? '#065F46' : '#991B1B' }};
+        border:1px solid {{ type == 'success' ? '#A7F3D0' : '#FECACA' }};
+        display:flex;align-items:center;gap:10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    ">
+        {{ type == 'success' ? '✅' : '❌' }} {{ message }}
+    </div>
+    {% endfor %}
+{% endfor %}
+
+<div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+    <table style="width:100%;border-collapse:collapse;text-align:left">
+        <thead style="background:#F8FAFC;border-bottom:1px solid #E2E8F0">
+            <tr>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Utilisateur</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Email & Tél</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Rôles</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Inscrit le</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;text-align:right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in utilisateurs %}
+            <tr style="border-bottom:1px solid #F1F5F9">
+                <td style="padding:16px 20px">
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#F0A500,#2E86AB);display:flex;align-items:center;justify-content:center;color:white;font-weight:700">
+                            {{ u.prenom|first|upper }}
+                        </div>
+                        <div>
+                            <div style="font-size:14px;font-weight:600;color:#1E293B">{{ u.prenom }} {{ u.nom }}</div>
+                            <div style="font-size:12px;color:#10B981;font-weight:600">{{ u.estVerifie ? '✓ Vérifié' : '' }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="padding:16px 20px">
+                    <div style="font-size:13px;color:#374151">{{ u.email }}</div>
+                    <div style="font-size:13px;color:#64748B;margin-top:2px">{{ u.telephone ?: 'Non renseigné' }}</div>
+                </td>
+                <td style="padding:16px 20px">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px">
+                        {% for role in u.roles %}
+                            {% if role == 'ROLE_ADMIN' %}
+                                <span style="background:#FEE2E2;color:#991B1B;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700">ADMIN</span>
+                            {% elseif role == 'ROLE_OWNER' %}
+                                <span style="background:#D1FAE5;color:#065F46;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700">PROPRIÉTAIRE</span>
+                            {% elseif role == 'ROLE_TRAVELER' %}
+                                <span style="background:#DBEAFE;color:#1E40AF;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700">VOYAGEUR</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </td>
+                <td style="padding:16px 20px;font-size:13px;color:#64748B">
+                    {{ u.creeLe|date('d/m/Y') }}
+                </td>
+                <td style="padding:16px 20px;text-align:right">
+                    {% if u != app.user and 'ROLE_ADMIN' not in u.roles %}
+                    <button onclick="openDeleteUserModal({{ u.id }}, '{{ u.prenom|e('js') }} {{ u.nom|e('js') }}')" 
+                        style="padding:8px 12px;background:#FEE2E2;color:#991B1B;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:all 0.2s"
+                        onmouseover="this.style.background='#FECACA'"
+                        onmouseout="this.style.background='#FEE2E2'">
+                        🗑️ Supprimer
+                    </button>
+                    {% else %}
+                    <span style="font-size:12px;color:#94A3B8;font-weight:600">Action restreinte</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# ===== MODAL SUPPRESSION UTILISATEUR ===== #}
+<div id="modal-delete-user" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+    <div style="background:white;border-radius:20px;padding:32px;max-width:440px;width:100%;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <div style="text-align:center;margin-bottom:24px">
+            <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+            <h3 style="font-size:20px;font-weight:700;color:#1E293B;margin:0 0 8px">Supprimer l'utilisateur</h3>
+            <p style="color:#64748B;font-size:14px;margin:0">
+                Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur<br>
+                <strong id="modal-user-name" style="color:#1E293B"></strong> ?
+            </p>
+            <p style="color:#EF4444;font-size:13px;margin-top:10px;font-weight:600">
+                ⚠️ Cette action supprimera également ses logements, réservations et avis associés.
+            </p>
+        </div>
+        <form id="form-delete-user" method="POST">
+            <div style="display:flex;gap:12px">
+                <button type="button" onclick="closeModal('modal-delete-user')"
+                    style="flex:1;padding:14px;border:2px solid #E2E8F0;border-radius:12px;background:white;color:#374151;font-size:14px;font-weight:700;cursor:pointer">
+                    Annuler
+                </button>
+                <button type="submit"
+                    style="flex:1;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#EF4444,#DC2626);color:white;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.3)">
+                    Oui, supprimer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openDeleteUserModal(id, name) {
+    document.getElementById('form-delete-user').action = '/admin/utilisateur/' + id + '/supprimer';
+    document.getElementById('modal-user-name').textContent = name;
+    showModal('modal-delete-user');
+}
+
+function showModal(id) {
+    const modal = document.getElementById(id);
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// Fermer en cliquant en dehors
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('modal-delete-user');
+    if (e.target === modal) closeModal('modal-delete-user');
+});
+
+// Auto-dismiss flash messages
+document.querySelectorAll('.ts-flash').forEach(function(el) {
+    setTimeout(function() {
+        el.style.transition = 'opacity 0.5s';
+        el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 500);
+    }, 4000);
+});
+</script>
+
+{% endblock %}

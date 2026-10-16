@@ -1,0 +1,56 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.voyageur'|trans }}{% endblock %}
+{% block page_title %}{{ 'dashboard.avis'|trans }}{% endblock %}
+{% block page_subtitle %}{{ 'reviews.subtitle'|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/traveler/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+{% if avis is empty %}
+<div style="background:white;border-radius:20px;padding:80px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+    <div style="font-size:64px;margin-bottom:20px">⭐</div>
+    <h3 style="font-size:20px;font-weight:700;color:#1E293B;margin:0 0 8px">{{ 'reviews.no_reviews'|trans }}</h3>
+    <p style="color:#64748B;font-size:15px;margin:0">{{ 'reviews.no_reviews_subtitle'|trans }}</p>
+</div>
+{% else %}
+<div style="display:flex;flex-direction:column;gap:16px">
+    {% for a in avis %}
+    <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+
+        <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:16px">
+            <div>
+                <div style="font-size:15px;font-weight:700;color:#1E293B">
+                    🏠 {{ a.logement.titre }}
+                </div>
+                <div style="font-size:13px;color:#64748B;margin-top:2px">
+                    {{ 'reviews.published_on'|trans }} {{ a.creeLe|date('d/m/Y') }}
+                </div>
+            </div>
+            <div style="display:flex;gap:2px">
+                {% for i in 1..5 %}
+                    <span style="font-size:18px;color:{{ i <= a.note ? '#F0A500' : '#E2E8F0' }}">★</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if a.commentaire %}
+        <p style="color:#374151;font-size:14px;line-height:1.8;margin:0 0 16px;padding:14px;background:#F8FAFC;border-radius:10px;border-left:3px solid #2E86AB">
+            "{{ a.commentaire }}"
+        </p>
+        {% endif %}
+
+        {% if a.reponseProprietaire %}
+        <div style="background:#EFF6FF;border-radius:10px;padding:14px;border-left:3px solid #1D4ED8">
+            <div style="font-size:12px;font-weight:700;color:#1D4ED8;margin-bottom:6px">{{ 'reviews.reponse_proprio'|trans }}</div>
+            <p style="color:#374151;font-size:14px;line-height:1.7;margin:0">{{ a.reponseProprietaire }}</p>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

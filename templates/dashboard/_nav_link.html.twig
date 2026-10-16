@@ -1,0 +1,18 @@
+{% macro nav_link(label, icon, route, current_route) %}
+    <a href="{{ path(route) }}"
+       style="
+           display:flex; align-items:center; gap:12px;
+           padding:11px 14px; border-radius:10px;
+           color:{{ app.request.attributes.get('_route') == route ? 'white' : 'rgba(255,255,255,0.6)' }};
+           background:{{ app.request.attributes.get('_route') == route ? 'rgba(255,255,255,0.12)' : 'transparent' }};
+           text-decoration:none; font-size:14px;
+           font-weight:{{ app.request.attributes.get('_route') == route ? '600' : '400' }};
+           margin-bottom:4px; transition:all 0.2s;
+           border-left:{{ app.request.attributes.get('_route') == route ? '3px solid #F0A500' : '3px solid transparent' }};
+       "
+       onmouseover="if('{{ app.request.attributes.get('_route') }}' != '{{ route }}') { this.style.background='rgba(255,255,255,0.06)'; this.style.color='white'; }"
+       onmouseout="if('{{ app.request.attributes.get('_route') }}' != '{{ route }}') { this.style.background='transparent'; this.style.color='rgba(255,255,255,0.6)'; }">
+        <span style="font-size:18px; width:22px; text-align:center">{{ icon }}</span>
+        <span>{{ label }}</span>
+    </a>
+{% endmacro %}

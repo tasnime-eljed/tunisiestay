@@ -1,0 +1,84 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.proprietaire'|trans }}{% endblock %}
+{% block page_title %}{{ 'dashboard.mes_logements'|trans }}{% endblock %}
+{% block page_subtitle %}{{ 'logements.gerer_annonces'|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/owner/_sidebar.html.twig' %}{% endblock %}
+
+{% block header_actions %}
+    <a href="{{ path('owner_logement_new') }}" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#F0A500,#e8950a);color:white;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 4px 12px rgba(240,165,0,0.3)">
+        ➕ {{ 'dashboard.nouveau_logement'|trans }}
+    </a>
+{% endblock %}
+
+{% block content %}
+
+{% if logements is empty %}
+<div style="background:white;border-radius:20px;padding:80px 40px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+    <div style="font-size:64px;margin-bottom:20px">🏡</div>
+    <h3 style="font-size:22px;font-weight:700;color:#1E293B;margin:0 0 10px">{{ 'logements.aucun'|trans }}</h3>
+    <p style="color:#64748B;font-size:15px;margin:0 0 28px">{{ 'logements.aucun_subtitle'|trans }}</p>
+    <a href="{{ path('owner_logement_new') }}" style="display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:linear-gradient(135deg,#1E3A5F,#2E86AB);color:white;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none">
+        🏠 {{ 'logements.publier_premier'|trans }}
+    </a>
+</div>
+{% else %}
+
+<div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+    <table style="width:100%;border-collapse:collapse">
+        <thead style="background:#F8FAFC">
+            <tr>
+                {% for th in [
+                    'logements.th_logement'|trans, 
+                    'search.ville'|trans, 
+                    'logements.th_type'|trans, 
+                    'logements.th_prix'|trans, 
+                    'dashboard.statut'|trans, 
+                    'reservations.actions'|trans
+                ] %}
+                <th style="text-align:left;padding:14px 16px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;{{ loop.last ? 'text-align:right' : '' }}">
+                    {{ th }}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for l in logements %}
+            <tr style="border-bottom:1px solid #F1F5F9;transition:background 0.15s" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">
+                <td style="padding:16px;max-width:220px">
+                    <div style="font-size:14px;font-weight:700;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.titre }}</div>
+                    <div style="font-size:12px;color:#94A3B8;margin-top:2px">{{ l.chambres }} {{ 'logement.chambres'|trans }} · {{ l.maxVoyageurs }} {{ 'reservations.pers'|trans }}</div>
+                </td>
+                <td style="padding:16px;font-size:14px;color:#374151">📍 {{ l.ville }}</td>
+                <td style="padding:16px;font-size:13px;color:#64748B;text-transform:capitalize">{{ ('search.' ~ l.type)|trans }}</td>
+                <td style="padding:16px;font-size:14px;font-weight:700;color:#1E3A5F">{{ l.prixParNuit|format_price(l.devise) }}</td>
+                <td style="padding:16px">
+                    {% set sc = {'publie': ['#D1FAE5','#065F46','✅'], 'en_attente': ['#FEF3C7','#92400E','⏳'], 'brouillon': ['#F1F5F9','#374151','📝'], 'suspendu': ['#FEE2E2','#991B1B','🚫']} %}
+                    {% set s = sc[l.statut] ?? ['#F1F5F9','#374151','?'] %}
+                    <span style="background:{{ s[0] }};color:{{ s[1] }};padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700">
+                        {{ s[2] }} {{ ('logements.' ~ l.statut)|trans|capitalize }}
+                    </span>
+                </td>
+                <td style="padding:16px;text-align:right">
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                        <a href="{{ path('owner_logement_edit', {id: l.id}) }}" style="padding:7px 14px;background:#EFF6FF;color:#1D4ED8;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">
+                            ✏️ {{ 'logements.modifier'|trans }}
+                        </a>
+                        <form method="POST" action="{{ path('owner_logement_delete', {id: l.id}) }}"
+                              onsubmit="return confirm('{{ 'logements.confirmer_suppression'|trans }}')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ l.id) }}">
+                            <button type="submit" style="padding:7px 14px;background:#FEE2E2;color:#DC2626;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
+                                🗑️ {{ 'logements.supprimer'|trans }}
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

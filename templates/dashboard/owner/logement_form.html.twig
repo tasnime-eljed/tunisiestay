@@ -1,0 +1,174 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}PROPRIÉTAIRE{% endblock %}
+{% block page_title %}{{ (logement ? 'logements.modifier_titre' : 'logements.nouveau')|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/owner/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'enctype': 'multipart/form-data'}}) }}
+
+{# Erreurs globales #}
+{% if form.vars.submitted and not form.vars.valid %}
+<div style="background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;padding:14px 18px;border-radius:12px;margin-bottom:24px;font-size:14px">
+    ⚠️ {{ 'logements.corriger_erreurs'|trans }}
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start">
+
+    {# Colonne gauche #}
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        {# Infos générales #}
+        <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+            <h3 style="margin:0 0 22px;font-size:16px;font-weight:700;color:#1E293B;display:flex;align-items:center;gap:8px">
+                📝 {{ 'logements.infos_generales'|trans }}
+            </h3>
+
+            <div style="margin-bottom:18px">
+                <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.titre_annonce'|trans }} *</label>
+                {{ form_widget(form.titre, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;transition:border-color 0.2s', 'onfocus': "this.style.borderColor='#2E86AB'", 'onblur': "this.style.borderColor='#E2E8F0'"}}) }}
+                {{ form_errors(form.titre) }}
+            </div>
+
+            <div style="margin-bottom:18px">
+                <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.description'|trans }} *</label>
+                {{ form_widget(form.description, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;resize:vertical;min-height:120px', 'onfocus': "this.style.borderColor='#2E86AB'", 'onblur': "this.style.borderColor='#E2E8F0'"}}) }}
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                <div>
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.type_logement'|trans }} *</label>
+                    {{ form_widget(form.type, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;background:white;box-sizing:border-box'}}) }}
+                </div>
+                <div>
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.devise'|trans }}</label>
+                    {{ form_widget(form.devise, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;background:white;box-sizing:border-box'}}) }}
+                </div>
+            </div>
+        </div>
+
+        {# Localisation #}
+        <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+            <h3 style="margin:0 0 22px;font-size:16px;font-weight:700;color:#1E293B">📍 {{ 'logements.localisation'|trans }}</h3>
+
+            <div style="margin-bottom:14px">
+                <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.adresse'|trans }}</label>
+                {{ form_widget(form.adresse, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box', 'onfocus': "this.style.borderColor='#2E86AB'", 'onblur': "this.style.borderColor='#E2E8F0'"}}) }}
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+                <div>
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.ville'|trans }} *</label>
+                    {{ form_widget(form.ville, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box', 'onfocus': "this.style.borderColor='#2E86AB'", 'onblur': "this.style.borderColor='#E2E8F0'"}}) }}
+                </div>
+                <div>
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.region'|trans }}</label>
+                    {{ form_widget(form.region, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box', 'onfocus': "this.style.borderColor='#2E86AB'", 'onblur': "this.style.borderColor='#E2E8F0'"}}) }}
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                <div>
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.latitude'|trans }}</label>
+                    {{ form_widget(form.latitude, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box', 'placeholder': 'Ex: 33.8869'}}) }}
+                </div>
+                <div>
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.longitude'|trans }}</label>
+                    {{ form_widget(form.longitude, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box', 'placeholder': 'Ex: 9.5375'}}) }}
+                </div>
+            </div>
+        </div>
+
+        {# Équipements #}
+        <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+            <h3 style="margin:0 0 22px;font-size:16px;font-weight:700;color:#1E293B">🛁 {{ 'logements.equipements'|trans }}</h3>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                {% for child in form.equipements %}
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid #E2E8F0;border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:13px;color:#374151"
+                       onmouseover="this.style.borderColor='#2E86AB';this.style.background='#F0F9FF'"
+                       onmouseout="this.style.borderColor='#E2E8F0';this.style.background='white'">
+                    {{ form_widget(child, {'attr': {'style': 'accent-color:#1E3A5F;width:16px;height:16px'}}) }}
+                    {{ form_label(child) }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    {# Colonne droite #}
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        {# Images #}
+        <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+            <h3 style="margin:0 0 18px;font-size:16px;font-weight:700;color:#1E293B">📸 {{ 'logements.photos'|trans }}</h3>
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.ajouter_photos'|trans }}</label>
+            {{ form_widget(form.images, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px dashed #E2E8F0;border-radius:10px;font-size:14px;outline:none;background:#F8FAFC;box-sizing:border-box', 'accept': 'image/*'}}) }}
+            <p style="margin:8px 0 0;font-size:12px;color:#94A3B8">{{ 'logements.photos_desc'|trans }}</p>
+            
+            {% if logement and logement.media|length > 0 %}
+            <div style="margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                {% for media in logement.media %}
+                <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:#F1F5F9">
+                    <img src="{{ asset('uploads/logements/' ~ media.nomFichier) }}" style="width:100%;height:100%;object-fit:cover" alt="Photo">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        {# Tarification #}
+        <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+            <h3 style="margin:0 0 18px;font-size:16px;font-weight:700;color:#1E293B">💰 {{ 'logements.tarification'|trans }}</h3>
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'logements.prix_nuit'|trans }} *</label>
+            {{ form_widget(form.prixParNuit, {'attr': {'style': 'width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:16px;font-weight:700;outline:none;font-family:inherit;box-sizing:border-box', 'onfocus': "this.style.borderColor='#2E86AB'", 'onblur': "this.style.borderColor='#E2E8F0'"}}) }}
+            {{ form_errors(form.prixParNuit) }}
+        </div>
+
+        {# Capacité #}
+        <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+            <h3 style="margin:0 0 18px;font-size:16px;font-weight:700;color:#1E293B">👥 {{ 'logements.capacite'|trans }}</h3>
+            {% for item in [
+                ['maxVoyageurs', 'Voyageurs max', '👥'],
+                ['chambres', 'Chambres', '🛏️'],
+                ['sallesDeBain', 'Salles de bain', '🚿'],
+            ] %}
+            <div style="margin-bottom:14px">
+                    {{ item[2] }} {{ ('logements.' ~ item[0])|trans }}
+                </label>
+                {{ form_widget(form[item[0]], {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box', 'min': '1'}}) }}
+            </div>
+            {% endfor %}
+        </div>
+
+        {# Actions #}
+        <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+            <button type="submit" style="width:100%;padding:14px;background:linear-gradient(135deg,#1E3A5F,#2E86AB);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px;box-shadow:0 4px 14px rgba(30,58,95,0.25)">
+                💾 {{ 'logements.enregistrer'|trans }}
+            </button>
+            <a href="{{ path('owner_logements') }}" style="display:block;text-align:center;padding:12px;border:2px solid #E2E8F0;border-radius:12px;color:#64748B;font-size:14px;font-weight:600;text-decoration:none;transition:all 0.2s"
+               onmouseover="this.style.borderColor='#1E3A5F';this.style.color='#1E3A5F'"
+               onmouseout="this.style.borderColor='#E2E8F0';this.style.color='#64748B'">
+                {{ 'logements.annuler'|trans }}
+            </a>
+
+            {% if logement %}
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #F1F5F9">
+                <div style="font-size:12px;color:#94A3B8;margin-bottom:8px">{{ 'logements.cree_le'|trans }} {{ logement.creeLe|date('d/m/Y') }}</div>
+                {% set statusColors = {'publie': '#10B981', 'en_attente': '#F0A500', 'brouillon': '#94A3B8', 'suspendu': '#EF4444'} %}
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#374151">
+                    <div style="width:8px;height:8px;border-radius:50%;background:{{ statusColors[logement.statut] ?? '#94A3B8' }}"></div>
+                    {{ 'logements.statut'|trans }} : <strong>{{ logement.statut|replace({'_': ' '})|capitalize }}</strong>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{{ form_end(form) }}
+{% endblock %}

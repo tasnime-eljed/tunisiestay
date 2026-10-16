@@ -1,0 +1,125 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.proprietaire'|trans }}{% endblock %}
+{% block page_title %}{{ 'dashboard.reservations_recues'|trans }}{% endblock %}
+{% block page_subtitle %}{{ reservations|length }} {{ 'reservations.nb_reservation'|trans }}{{ reservations|length > 1 ? 's' : '' }} {{ 'reservations.au_total'|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/owner/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+{% if reservations is empty %}
+<div style="background:white;border-radius:20px;padding:80px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+    <div style="font-size:64px;margin-bottom:20px">📭</div>
+    <h3 style="font-size:20px;font-weight:700;color:#1E293B;margin:0 0 8px">{{ 'reservations.aucune'|trans }}</h3>
+    <p style="color:#64748B;font-size:15px;margin:0">{{ 'reservations.aucune_owner_subtitle'|trans }}</p>
+</div>
+{% else %}
+
+{# Filtres rapides #}
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+    {% for statut, label in {
+        '': 'reservations.toutes'|trans, 
+        'en_attente': '⏳ ' ~ 'reservations.en_attente'|trans, 
+        'confirme': '✅ ' ~ 'reservations.confirme'|trans, 
+        'annule': '❌ ' ~ 'reservations.annule'|trans, 
+        'termine': '✔️ ' ~ 'reservations.termine'|trans
+    } %}
+    <button onclick="filterReservations('{{ statut }}')"
+            id="filter-{{ statut }}"
+            style="padding:8px 18px;border-radius:20px;border:2px solid {{ statut == '' ? '#1E3A5F' : '#E2E8F0' }};background:{{ statut == '' ? '#1E3A5F' : 'white' }};color:{{ statut == '' ? 'white' : '#374151' }};font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s">
+        {{ label }}
+    </button>
+    {% endfor %}
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px" id="reservations-list">
+    {% for r in reservations %}
+    <div class="reservation-item" data-statut="{{ r.statut }}" style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9;display:flex;align-items:center;gap:20px">
+
+        {# Voyageur avatar #}
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#F0A500,#2E86AB);display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:18px;flex-shrink:0">
+            {{ r.voyageur.prenom|first|upper }}
+        </div>
+
+        {# Infos principales #}
+        <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:4px">
+                {{ r.voyageur.prenom }} {{ r.voyageur.nom }}
+            </div>
+            <div style="font-size:13px;color:#64748B">
+                🏠 {{ r.logement.titre|length > 40 ? r.logement.titre|slice(0,40) ~ '...' : r.logement.titre }}
+            </div>
+        </div>
+
+        {# Dates #}
+        <div style="text-align:center;padding:0 20px;border-left:1px solid #F1F5F9;border-right:1px solid #F1F5F9">
+            <div style="font-size:13px;color:#94A3B8;margin-bottom:4px">{{ 'dashboard.sejour'|trans }}</div>
+            <div style="font-size:13px;font-weight:600;color:#1E293B">
+                {{ r.dateArrivee|date('d/m') }} → {{ r.dateDepart|date('d/m/Y') }}
+            </div>
+            <div style="font-size:12px;color:#64748B">{{ r.nbNuits }} {{ 'reservations.nb_nuits'|trans }}{{ r.nbNuits > 1 ? 's' : '' }} · {{ r.nbVoyageurs }} {{ 'reservations.pers'|trans }}</div>
+        </div>
+
+        {# Montant #}
+        <div style="text-align:center;padding:0 20px;border-right:1px solid #F1F5F9">
+            <div style="font-size:13px;color:#94A3B8;margin-bottom:4px">{{ 'reservations.montant'|trans }}</div>
+            <div style="font-size:18px;font-weight:800;color:#1E3A5F">{{ r.montantBase|format_price(r.devise) }}</div>
+        </div>
+
+        {# Statut #}
+        {% set sc = {
+            'en_attente': ['#FEF3C7','#92400E'],
+            'confirme':   ['#D1FAE5','#065F46'],
+            'annule':     ['#FEE2E2','#991B1B'],
+            'termine':    ['#EDE9FE','#4C1D95'],
+        } %}
+        {% set c = sc[r.statut] ?? ['#F1F5F9','#374151'] %}
+        <div style="text-align:center;min-width:100px">
+            <span style="background:{{ c[0] }};color:{{ c[1] }};padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;display:block">
+                {{ ('reservations.' ~ r.statut)|trans|upper }}
+            </span>
+        </div>
+
+        {# Actions #}
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:120px">
+            {% if r.statut == 'en_attente' %}
+            <form method="POST" action="{{ path('owner_reservation_accepter', {id: r.id}) }}">
+                <button type="submit" style="width:100%;padding:8px 14px;background:#D1FAE5;color:#065F46;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+                    ✅ {{ 'reservations.accepter'|trans }}
+                </button>
+            </form>
+            <form method="POST" action="{{ path('owner_reservation_refuser', {id: r.id}) }}"
+                  onsubmit="return confirm('{{ 'reservations.confirmer_refus'|trans }}')">
+                <button type="submit" style="width:100%;padding:8px 14px;background:#FEE2E2;color:#DC2626;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+                    ❌ {{ 'reservations.refuser'|trans }}
+                </button>
+            </form>
+            {% else %}
+            <div style="font-size:12px;color:#94A3B8;text-align:center">
+                {{ ('reservations.' ~ r.statut)|trans }}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+function filterReservations(statut) {
+    const items = document.querySelectorAll('.reservation-item');
+    items.forEach(item => {
+        item.style.display = (!statut || item.dataset.statut === statut) ? 'flex' : 'none';
+    });
+    document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+        const isActive = btn.id === 'filter-' + statut;
+        btn.style.background = isActive ? '#1E3A5F' : 'white';
+        btn.style.color = isActive ? 'white' : '#374151';
+        btn.style.borderColor = isActive ? '#1E3A5F' : '#E2E8F0';
+    });
+}
+</script>
+
+{% endblock %}

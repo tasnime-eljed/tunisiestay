@@ -1,0 +1,153 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Recherche logements — TunisiaStay{% endblock %}
+
+{% block body %}
+<div style="padding-top:72px;background:#F8FAFC;min-height:100vh">
+
+    {# Barre recherche compacte #}
+    <div style="background:white;border-bottom:1px solid #E2E8F0;padding:16px 60px">
+        <form action="{{ path('app_search') }}" method="GET" style="display:flex;gap:8px;align-items:center">
+            <input type="text" name="ville" value="{{ ville }}" placeholder="{{ 'search.destination'|trans }}..."
+                   style="flex:2;padding:10px 16px;border:1px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+            <input type="date" name="check_in" value="{{ checkIn }}"
+                   style="flex:1;padding:10px 14px;border:1px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+            <input type="date" name="check_out" value="{{ checkOut }}"
+                   style="flex:1;padding:10px 14px;border:1px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+            <select name="voyageurs" style="flex:1;padding:10px 14px;border:1px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+                {% for i in 1..10 %}
+                    <option value="{{ i }}" {{ nbVoyageurs == i ? 'selected' : '' }}>{{ i }} {{ i > 1 ? 'search.voyageurs'|trans : 'logement.voyageur'|trans }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" style="padding:10px 24px;background:#1E3A5F;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+                🔍 {{ 'hero.rechercher'|trans }}
+            </button>
+        </form>
+    </div>
+
+    <div style="display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - 145px)">
+
+        {# SIDEBAR FILTRES #}
+        <aside style="background:white;border-right:1px solid #E2E8F0;padding:24px;position:sticky;top:145px;height:fit-content">
+            <h3 style="font-size:16px;font-weight:700;color:#1E293B;margin:0 0 20px">{{ 'search.filtres'|trans }}</h3>
+
+            <form action="{{ path('app_search') }}" method="GET" id="form-filtres">
+                <input type="hidden" name="ville" value="{{ ville }}">
+
+                {# Type de logement #}
+                <div style="margin-bottom:24px">
+                    <label style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">
+                        {{ 'search.type_logement'|trans }}
+                    </label>
+                    {% for val, label_key in {'': 'search.tous', 'villa': 'search.villa', 'appartement': 'search.appartement', 'riad': 'search.riad', 'chalet': 'search.chalet', 'maison_hote': 'search.maison_hote'} %}
+                    <label style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer">
+                        <input type="radio" name="type" value="{{ val }}" {{ type == val ? 'checked' : '' }}
+                               onchange="document.getElementById('form-filtres').submit()"
+                               style="accent-color:#1E3A5F">
+                        <span style="font-size:14px;color:#374151">{{ label_key|trans }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                {# Prix #}
+                <div style="margin-bottom:24px">
+                    <label style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">
+                        {{ 'search.prix_par_nuit'|trans }}
+                    </label>
+                    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center">
+                        <input type="number" name="prix_min" value="{{ prixMin }}" placeholder="{{ 'search.min'|trans }}"
+                               style="width:100%;padding:8px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box">
+                        <span style="color:#94A3B8">—</span>
+                        <input type="number" name="prix_max" value="{{ prixMax }}" placeholder="{{ 'search.max'|trans }}"
+                               style="width:100%;padding:8px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box">
+                    </div>
+                </div>
+
+                {# Tri #}
+                <div style="margin-bottom:24px">
+                    <label style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">
+                        {{ 'search.trier_par'|trans }}
+                    </label>
+                    <select name="tri" style="width:100%;padding:10px 12px;border:1px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"
+                            onchange="this.form.submit()">
+                        <option value="recent" {{ tri == 'recent' ? 'selected' : '' }}>{{ 'search.plus_recents'|trans }}</option>
+                        <option value="prix_asc" {{ tri == 'prix_asc' ? 'selected' : '' }}>{{ 'search.prix_croissant'|trans }}</option>
+                        <option value="prix_desc" {{ tri == 'prix_desc' ? 'selected' : '' }}>{{ 'search.prix_decroissant'|trans }}</option>
+                    </select>
+                </div>
+
+                <button type="submit" style="width:100%;padding:12px;background:#1E3A5F;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+                    {{ 'search.appliquer_filtres'|trans }}
+                </button>
+
+                {% if ville or type or prixMin or prixMax %}
+                <a href="{{ path('app_search') }}" style="display:block;text-align:center;margin-top:10px;font-size:13px;color:#64748B">
+                    {{ 'search.effacer_filtres'|trans }}
+                </a>
+                {% endif %}
+            </form>
+        </aside>
+
+        {# RÉSULTATS #}
+        <main style="padding:24px 32px">
+
+            {# Header résultats #}
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+                <p style="font-size:16px;color:#374151;font-weight:500;margin:0">
+                    <strong style="color:#1E293B">{{ total }}</strong> {{ total > 1 ? 'search.logements_trouves'|trans : 'search.logement_trouve'|trans }}
+                    {% if ville %} {{ 'search.a'|trans }} <strong>{{ ville }}</strong>{% endif %}
+                </p>
+            </div>
+
+            {% if logements is empty %}
+            <div style="text-align:center;padding:80px 40px;background:white;border-radius:20px">
+                <div style="font-size:64px;margin-bottom:20px">🔍</div>
+                <h3 style="font-size:22px;font-weight:700;color:#1E293B;margin:0 0 10px">{{ 'search.aucun_resultat'|trans }}</h3>
+                <p style="color:#64748B;font-size:15px;margin:0 0 24px">{{ 'search.essayer_autres_criteres'|trans }}</p>
+                <a href="{{ path('app_search') }}" style="padding:12px 28px;background:#1E3A5F;color:white;border-radius:10px;font-size:14px;font-weight:700">
+                    {{ 'home.voir_tous'|trans }}
+                </a>
+            </div>
+            {% else %}
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px">
+                {% for logement in logements %}
+                <a href="{{ path('app_logement_show', {id: logement.id, slug: logement.slug}) }}" style="
+                    border-radius:16px;overflow:hidden;background:white;
+                    box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1px solid #F1F5F9;
+                    transition:all 0.3s;display:block;
+                "
+                onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.12)'"
+                onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.07)'">
+                    <div style="height:200px;background:linear-gradient(135deg,#1E3A5F,#2E86AB);display:flex;align-items:center;justify-content:center;font-size:52px;position:relative;overflow:hidden">
+                        {% if logement.media|length > 0 %}
+                            <img src="{{ asset('uploads/logements/' ~ logement.media[0].nomFichier) }}" style="width:100%;height:100%;object-fit:cover" alt="{{ logement.titre }}">
+                        {% else %}
+                            🏠
+                        {% endif %}
+                        <div style="position:absolute;top:10px;left:10px;background:#F0A500;color:white;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">
+                            {{ logement.type|upper }}
+                        </div>
+                    </div>
+                    <div style="padding:18px">
+                        <div style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:6px">
+                            {{ logement.titre|length > 50 ? logement.titre|slice(0,50) ~ '...' : logement.titre }}
+                        </div>
+                        <p style="color:#64748B;font-size:13px;margin:0 0 12px">
+                            📍 {{ logement.ville }} · 👥 {{ logement.maxVoyageurs }} · 🛏️ {{ logement.chambres }}
+                        </p>
+                        <div style="display:flex;align-items:center;justify-content:space-between">
+                            <div>
+                                <span style="font-size:20px;font-weight:800;color:#1E3A5F">{{ logement.prixParNuit|format_price(logement.devise) }}</span>
+                                <span style="color:#94A3B8;font-size:12px"> /{{ 'logement.nuit'|trans }}</span>
+                            </div>
+                            <span style="color:#2E86AB;font-size:13px;font-weight:600">{{ 'home.voir'|trans }} →</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </main>
+    </div>
+</div>
+{% endblock %}

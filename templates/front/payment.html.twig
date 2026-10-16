@@ -1,0 +1,78 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Paiement — TunisiaStay{% endblock %}
+
+{% block body %}
+<div style="padding-top:100px;min-height:100vh;background:#F8FAFC">
+    <div style="max-width:600px;margin:0 auto;padding:40px 20px">
+
+        <h1 style="font-size:28px;font-weight:800;color:#1E3A5F;margin:0 0 8px">{{ 'booking.finaliser'|trans }}</h1>
+        <p style="color:#64748B;margin:0 0 32px">{{ reservation.logement.titre }}</p>
+
+        {# Récapitulatif #}
+        <div style="background:white;border-radius:16px;padding:24px;margin-bottom:24px;border:1px solid #E2E8F0;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+            <h3 style="font-size:16px;font-weight:700;color:#1E293B;margin:0 0 16px">📋 {{ 'booking.recapitulatif'|trans }}</h3>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9;font-size:14px;color:#374151">
+                <span>{{ 'booking.arrivee'|trans }}</span>
+                <span style="font-weight:600">{{ reservation.dateArrivee|date('d/m/Y') }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9;font-size:14px;color:#374151">
+                <span>{{ 'booking.depart'|trans }}</span>
+                <span style="font-weight:600">{{ reservation.dateDepart|date('d/m/Y') }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9;font-size:14px;color:#374151">
+                <span>{{ reservation.prixParNuit ?? reservation.montantBase }} × {{ reservation.nbNuits }} {{ reservation.nbNuits > 1 ? 'booking.nuits'|trans : 'booking.nuit'|trans }}</span>
+                <span style="font-weight:600">{{ reservation.montantBase }} {{ reservation.devise }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9;font-size:14px;color:#374151">
+                <span>{{ 'booking.frais_service'|trans }} ({{ reservation.tauxCommission }}%)</span>
+                <span style="font-weight:600">{{ reservation.montantCommission }} {{ reservation.devise }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:14px 0 0;font-size:18px;font-weight:800;color:#1E3A5F">
+                <span>{{ 'booking.total'|trans }}</span>
+                <span>{{ reservation.montantTotal }} {{ reservation.devise }}</span>
+            </div>
+        </div>
+
+        {# Formulaire Stripe #}
+        <div style="background:white;border-radius:16px;padding:24px;border:1px solid #E2E8F0;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+            <h3 style="font-size:16px;font-weight:700;color:#1E293B;margin:0 0 20px">💳 {{ 'booking.infos_paiement'|trans }}</h3>
+            <div id="payment-element" style="margin-bottom:20px"></div>
+            <button id="submit-btn" style="
+                width:100%;padding:16px;
+                background:linear-gradient(135deg,#F0A500,#e8950a);
+                color:white;border:none;border-radius:14px;
+                font-size:16px;font-weight:800;cursor:pointer;
+                font-family:inherit;
+            ">
+                {{ 'booking.payer'|trans }} {{ reservation.montantTotal|format_price(reservation.devise) }}
+            </button>
+            <div id="error-message" style="color:#EF4444;font-size:13px;margin-top:10px;display:none"></div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+const stripe = Stripe('{{ stripePublicKey }}');
+const elements = stripe.elements({ clientSecret: '{{ clientSecret }}' });
+const paymentElement = elements.create('payment');
+paymentElement.mount('#payment-element');
+
+document.getElementById('submit-btn').addEventListener('click', async () => {
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            return_url: '{{ url('app_payment_success', {id: reservation.id}) }}',
+        },
+    });
+    if (error) {
+        const el = document.getElementById('error-message');
+        el.textContent = error.message;
+        el.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

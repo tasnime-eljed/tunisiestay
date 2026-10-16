@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Utilisateur;
+use App\Form\RegistrationFormType;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
+
+class RegistrationController extends AbstractController
+{
+    #[Route('/register', name: 'app_register')]
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $em
+    ): Response {
+        $user = new Utilisateur();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                // Hash du mot de passe
+                $plainPassword = $form->get('plainPassword')->getData();
+                $user->setPassword(
+                    $passwordHasher->hashPassword($user, $plainPassword)
+                );
+
+                // Rôle
+                $role = $form->get('role')->getData();
+                $user->setRoles([$role ?? 'ROLE_TRAVELER']);
+
+                // Valeurs par défaut
+                $user->setEstVerifie(false);
+                $user->setLangue('fr');
+                $user->setCreeLe(new \DateTime());
+
+                try {
+                    $em->persist($user);
+                    $em->flush();
+
+                    $this->addFlash('success', '✅ Compte créé ! Connectez-vous.');
+                    return $this->redirectToRoute('app_login');
+
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Erreur : ' . $e->getMessage());
+                }
+            }
+        }
+
+        return $this->render('registration/register.html.twig', [
+            'form' => $form,
+        ]);
+    }
+}
