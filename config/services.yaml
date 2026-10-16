@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+# See also https://symfony.com/doc/current/service_container/import.html
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+# config/services.yaml
+parameters:
+    logements_directory: '%kernel.project_dir%/public/uploads/logements'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: "../src/"
+        exclude:
+            - "../src/DependencyInjection/"
+            - "../src/Entity/"
+            - "../src/Kernel.php"
+
+    # Enregistrement explicite des controllers
+    App\Controller\:
+        resource: "../src/Controller/"
+        tags: ["controller.service_arguments"]
+
+    App\Controller\Front\:
+        resource: "../src/Controller/Front/"
+        tags: ["controller.service_arguments"]
+
+    App\Controller\Dashboard\:
+        resource: "../src/Controller/Dashboard/"
+        tags: ["controller.service_arguments"]
+    App\Controller\Front\PaymentController:
+        arguments:
+            $stripePublicKey: "%env(STRIPE_PUBLIC_KEY)%"
+        tags: ["controller.service_arguments"]
+
+    App\Service\Payment\StripeService:
+        arguments:
+            $secretKey: "%env(STRIPE_SECRET_KEY)%"

@@ -1,0 +1,97 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.proprietaire'|trans }}{% endblock %}
+{% block page_title %}{{ 'profile.profil'|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/owner/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;justify-content:center;padding:20px 0">
+    <div style="width:100%;max-width:600px">
+        <div style="background:white;border-radius:20px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+
+            {# Avatar #}
+            <div style="text-align:center;margin-bottom:32px">
+                <div style="position:relative;width:100px;height:100px;margin:0 auto 16px">
+                    {% if user.avatarUrl %}
+                        <img src="{{ asset('uploads/avatars/' ~ user.avatarUrl) }}" 
+                             style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #F0A500">
+                    {% else %}
+                        <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#F0A500,#2E86AB);display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:40px">
+                            {{ user.prenom|first|upper }}
+                        </div>
+                    {% endif %}
+                    <label for="avatar-input" style="position:absolute;bottom:0;right:0;background:#1E3A5F;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid white">
+                        📷
+                    </label>
+                </div>
+                <div style="font-size:20px;font-weight:700;color:#1E293B">{{ user.prenom }} {{ user.nom }}</div>
+                <div style="font-size:14px;color:#64748B;margin-top:4px">{{ user.email }}</div>
+                <span style="display:inline-block;margin-top:8px;background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700">
+                    🏠 {{ 'dashboard.proprietaire'|trans }}
+                </span>
+            </div>
+
+            {# Formulaire #}
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="avatar" id="avatar-input" style="display:none" onchange="this.form.submit()">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+                    <div>
+                        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'auth.prenom'|trans }}</label>
+                        <input type="text" name="prenom" value="{{ user.prenom }}"
+                               style="width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'auth.nom'|trans }}</label>
+                        <input type="text" name="nom" value="{{ user.nom }}"
+                               style="width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box">
+                    </div>
+                </div>
+
+                <div style="margin-bottom:16px">
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'auth.email'|trans }}</label>
+                    <input type="email" value="{{ user.email }}" disabled
+                           style="width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;background:#F8FAFC;color:#94A3B8;box-sizing:border-box">
+                    <p style="font-size:12px;color:#94A3B8;margin:4px 0 0">{{ 'profile.email_not_modifiable'|trans }}</p>
+                </div>
+
+                <div style="margin-bottom:24px;border-bottom:1px solid #F1F5F9;padding-bottom:24px">
+                    <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'profile.telephone'|trans }}</label>
+                    <input type="tel" name="telephone" value="{{ user.telephone }}"
+                           placeholder="+216 XX XXX XXX"
+                           style="width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box">
+                </div>
+
+                {# Section Sécurité #}
+                <div style="margin-bottom:24px">
+                    <h3 style="font-size:15px;font-weight:700;color:#1E293B;margin:0 0 16px">🔐 {{ 'profile.password_change'|trans }}</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div>
+                            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'profile.new_password'|trans }}</label>
+                            <input type="password" name="new_password"
+                                   style="width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">{{ 'profile.confirm_password'|trans }}</label>
+                            <input type="password" name="confirm_password"
+                                   style="width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box">
+                        </div>
+                    </div>
+                    <p style="font-size:12px;color:#94A3B8;margin:8px 0 0">{{ 'profile.leave_empty'|trans }}</p>
+                </div>
+
+                <button type="submit" style="width:100%;padding:14px;background:linear-gradient(135deg,#1E3A5F,#2E86AB);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(30,58,95,0.2)">
+                    💾 {{ 'profile.save'|trans }}
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+{% endblock %}

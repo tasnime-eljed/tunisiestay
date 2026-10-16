@@ -1,0 +1,310 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}TunisiaStay — Découvrez la Tunisie{% endblock %}
+{% block nav_bg %}transparent{% endblock %}
+{% block nav_border %}transparent{% endblock %}
+
+{% block body %}
+
+{# ===== HERO SECTION ===== #}
+<section style="
+    min-height: 100vh;
+    background-image: url('https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=1920&q=90');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+">
+    <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 100%)"></div>
+
+    <div style="position:relative; z-index:10; text-align:center; padding:0 20px; max-width:900px; margin-top:70px">
+
+        <h1 style="color:white; font-size:60px; font-weight:800; line-height:1.1; margin:0 0 20px; text-shadow:0 2px 20px rgba(0,0,0,0.3)">
+            {{ 'hero.titre'|trans|raw }}
+        </h1>
+
+        <p style="color:rgba(255,255,255,0.9); font-size:20px; margin:0 0 48px; font-weight:400; line-height:1.6">
+            {{ 'hero.sous_titre'|trans }}
+        </p>
+
+        {# ===== SEARCH BAR ===== #}
+        <form action="{{ path('app_search') }}" method="GET" style="
+            background:white;
+            border-radius:20px;
+            padding:8px;
+            display:flex;
+            align-items:center;
+            gap:0;
+            box-shadow:0 20px 60px rgba(0,0,0,0.3);
+            max-width:800px;
+            margin:0 auto;
+        ">
+            <div style="flex:2; padding:12px 20px; border-right:1px solid #E2E8F0">
+                <div style="font-size:11px; font-weight:700; color:#94A3B8; letter-spacing:1px; margin-bottom:4px">{{ 'search.destination'|trans|upper }}</div>
+                <input type="text" name="ville" placeholder="{{ 'search.placeholder'|trans }}"
+                       style="border:none; outline:none; font-size:15px; color:#1E293B; font-weight:500; width:100%; background:transparent; font-family:inherit">
+            </div>
+            <div style="flex:1; padding:12px 20px; border-right:1px solid #E2E8F0">
+                <div style="font-size:11px; font-weight:700; color:#94A3B8; letter-spacing:1px; margin-bottom:4px">{{ 'search.arrivee'|trans|upper }}</div>
+                <input type="date" name="check_in"
+                       style="border:none; outline:none; font-size:15px; color:#1E293B; font-weight:500; width:100%; background:transparent; font-family:inherit">
+            </div>
+            <div style="flex:1; padding:12px 20px; border-right:1px solid #E2E8F0">
+                <div style="font-size:11px; font-weight:700; color:#94A3B8; letter-spacing:1px; margin-bottom:4px">{{ 'search.depart'|trans|upper }}</div>
+                <input type="date" name="check_out"
+                       style="border:none; outline:none; font-size:15px; color:#1E293B; font-weight:500; width:100%; background:transparent; font-family:inherit">
+            </div>
+            <div style="flex:1; padding:12px 20px">
+                <div style="font-size:11px; font-weight:700; color:#94A3B8; letter-spacing:1px; margin-bottom:4px">{{ 'search.voyageurs'|trans|upper }}</div>
+                <select name="voyageurs" style="border:none; outline:none; font-size:15px; color:#1E293B; font-weight:500; width:100%; background:transparent; font-family:inherit">
+                    <option value="1">1 {{ 'logement.voyageur'|trans }}</option>
+                    <option value="2">2 {{ 'logement.voyageurs'|trans }}</option>
+                    <option value="3">3 {{ 'logement.voyageurs'|trans }}</option>
+                    <option value="4">4+ {{ 'logement.voyageurs'|trans }}</option>
+                </select>
+            </div>
+            <button type="submit" style="
+                background:linear-gradient(135deg,#F0A500,#e8950a);
+                color:white; border:none; border-radius:14px;
+                padding:16px 28px; font-size:15px; font-weight:800;
+                cursor:pointer; white-space:nowrap;
+                box-shadow:0 8px 20px rgba(240,165,0,0.4);
+                font-family:inherit; letter-spacing:0.5px;
+            ">
+                🔍 {{ 'hero.rechercher'|trans }}
+            </button>
+        </form>
+
+        {# Chips types de logement #}
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:24px; flex-wrap:wrap">
+            {% set chips = [
+                ['🏖️', 'home.chip_plage'|trans],
+                ['🏡', 'home.chip_villa'|trans],
+                ['🕌', 'home.chip_riad'|trans],
+                ['🏔️', 'home.chip_montagne'|trans],
+                ['🌴', 'home.chip_oasis'|trans]
+            ] %}
+            {% for chip in chips %}
+                <span style="
+                    background:rgba(255,255,255,0.15);
+                    backdrop-filter:blur(10px);
+                    border:1px solid rgba(255,255,255,0.3);
+                    color:white; padding:8px 18px; border-radius:50px;
+                    font-size:13px; font-weight:500; cursor:pointer;
+                    transition:all 0.2s;
+                "
+                onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+                onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    {{ chip[0] }} {{ chip[1] }}
+                </span>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+{# ===== STATS SECTION ===== #}
+<section style="background:white; padding:40px 80px; border-bottom:1px solid #F1F5F9">
+    <div style="display:flex; justify-content:center; gap:80px; text-align:center">
+        {% set stats = [
+            ['500+', 'home.stat_logements'|trans],
+            ['10 000+', 'home.stat_voyageurs'|trans],
+            ['50+', 'home.stat_destinations'|trans],
+            ['4.9/5', 'home.stat_note'|trans]
+        ] %}
+        {% for stat in stats %}
+        <div>
+            <div style="font-size:32px; font-weight:800; color:#1E3A5F">{{ stat[0] }}</div>
+            <div style="font-size:14px; color:#64748B; margin-top:4px">{{ stat[1] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+{# ===== DESTINATIONS POPULAIRES ===== #}
+<section id="destinations" style="padding:80px 80px; background:#F8FAFC">
+    <div style="text-align:center; margin-bottom:48px">
+        <h2 style="font-size:36px; font-weight:800; color:#1E3A5F; margin:0 0 12px">
+            {{ 'home.destinations_titre'|trans }}
+        </h2>
+        <p style="color:#64748B; font-size:16px; margin:0">
+            {{ 'home.destinations_sous_titre'|trans }}
+        </p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px">
+        {% for dest in destinationsPopulaires %}
+        <a href="{{ path('app_search', {'ville': dest.ville}) }}" style="
+            border-radius:16px; overflow:hidden;
+            position:relative; display:block;
+            height:220px;
+            box-shadow:0 4px 20px rgba(0,0,0,0.12);
+            transition:transform 0.3s, box-shadow 0.3s;
+        "
+        onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.18)'"
+        onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(0,0,0,0.12)'">
+            {% if dest.image %}
+                <img src="{{ asset('uploads/logements/' ~ dest.image) }}" alt="{{ dest.ville }}"
+                     style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s">
+            {% else %}
+                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80" alt="{{ dest.ville }}"
+                     style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s">
+            {% endif %}
+            <div style="position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.7) 100%)"></div>
+            <div style="position:absolute; bottom:16px; left:16px">
+                <div style="color:white; font-weight:700; font-size:18px">{{ dest.ville }}</div>
+                <div style="color:rgba(255,255,255,0.8); font-size:13px; margin-top:2px">{{ dest.logement_count }} {{ 'logement.logements'|trans }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+{# ===== LOGEMENTS EN VEDETTE ===== #}
+<section style="padding:80px 80px; background:white">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:48px">
+        <div>
+            <h2 style="font-size:36px; font-weight:800; color:#1E3A5F; margin:0 0 8px">
+                {{ 'home.vedette_titre'|trans }}
+            </h2>
+            <p style="color:#64748B; font-size:16px; margin:0">
+                {{ 'home.vedette_sous_titre'|trans }}
+            </p>
+        </div>
+        <a href="{{ path('app_search') }}" style="
+            padding:12px 24px; border:2px solid #1E3A5F; color:#1E3A5F;
+            border-radius:10px; font-size:14px; font-weight:700;
+            transition:all 0.2s;
+        "
+        onmouseover="this.style.background='#1E3A5F';this.style.color='white'"
+        onmouseout="this.style.background='transparent';this.style.color='#1E3A5F'">
+            {{ 'home.voir_tous'|trans }} →
+        </a>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px">
+        {% for logement in logements|slice(0, 3) %}
+        <div style="border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08); border:1px solid #F1F5F9; transition:all 0.3s"
+             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.12)'"
+             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+            {# Image #}
+            <div style="height:220px; background:#E2E8F0; position:relative; overflow:hidden">
+                {% if logement.media|length > 0 %}
+                    <img src="{{ asset('uploads/logements/' ~ logement.media|first.nomFichier) }}" alt="{{ logement.titre }}"
+                         style="width:100%; height:100%; object-fit:cover">
+                {% else %}
+                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#E2E8F0; color:#94A3B8">
+                        {{ 'logements.aucune_image'|trans }}
+                    </div>
+                {% endif %}
+                <div style="position:absolute; top:12px; left:12px">
+                    <span style="background:#F0A500; color:white; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700">
+                        {{ 'logements.recent'|trans|upper }}
+                    </span>
+                </div>
+            </div>
+
+            {# Infos #}
+            <div style="padding:20px">
+                <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px">
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ logement.titre }}
+                    </h3>
+                </div>
+                <p style="margin:0 0 12px; color:#64748B; font-size:13px">
+                    📍 {{ logement.ville }}, {{ 'common.tunisie'|trans }} · {{ logement.chambres }} {{ 'logement.chambres'|trans }} · {{ logement.maxVoyageurs }} {{ 'logement.voyageurs'|trans }}
+                </p>
+                <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap">
+                    {% for equipement in logement.equipements|slice(0, 3) %}
+                        <span style="background:#F0F9FF; color:#0369A1; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:500">
+                            {{ equipement.nom }}
+                        </span>
+                    {% endfor %}
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between">
+                    <div>
+                        <span style="font-size:22px; font-weight:800; color:#1E3A5F">{{ logement.prixParNuit|format_price(logement.devise) }}</span>
+                        <span style="color:#94A3B8; font-size:13px"> / {{ 'logement.nuit'|trans }}</span>
+                    </div>
+                    <a href="{{ path('app_logement_show', {'id': logement.id, 'slug': logement.slug}) }}" style="
+                        background:linear-gradient(135deg,#1E3A5F,#2E86AB);
+                        color:white; padding:10px 20px; border-radius:10px;
+                        font-size:13px; font-weight:700;
+                        box-shadow:0 4px 12px rgba(30,58,95,0.25);
+                        text-decoration: none;
+                    ">
+                        {{ 'home.voir'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+{# ===== POURQUOI TUNISIASTAY ===== #}
+<section style="padding:80px 80px; background:#F8FAFC">
+    <div style="text-align:center; margin-bottom:48px">
+        <h2 style="font-size:36px; font-weight:800; color:#1E3A5F; margin:0 0 12px">
+            {{ 'home.pourquoi_titre'|trans }}
+        </h2>
+        <p style="color:#64748B; font-size:16px; margin:0">
+            {{ 'home.pourquoi_sous_titre'|trans }}
+        </p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:30px">
+        {% set features = [
+            ['🔒', 'home.feat_pay_titre'|trans, 'home.feat_pay_desc'|trans],
+            ['✅', 'home.feat_verif_titre'|trans, 'home.feat_verif_desc'|trans],
+            ['💬', 'home.feat_support_titre'|trans, 'home.feat_support_desc'|trans],
+            ['💰', 'home.feat_prix_titre'|trans, 'home.feat_prix_desc'|trans],
+            ['⭐', 'home.feat_avis_titre'|trans, 'home.feat_avis_desc'|trans],
+            ['🌍', 'home.feat_pays_titre'|trans, 'home.feat_pays_desc'|trans],
+        ] %}
+
+        {% for feature in features %}
+        <div style="background:white; border-radius:16px; padding:28px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border:1px solid #F1F5F9; transition:all 0.3s"
+             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 25px rgba(0,0,0,0.1)'"
+             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'">
+            <div style="font-size:36px; margin-bottom:16px">{{ feature[0] }}</div>
+            <h3 style="margin:0 0 10px; font-size:17px; font-weight:700; color:#1E293B">{{ feature[1] }}</h3>
+            <p style="margin:0; color:#64748B; font-size:14px; line-height:1.7">{{ feature[2] }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+{# ===== CTA PROPRIÉTAIRES ===== #}
+<section style="
+    padding:80px;
+    background:linear-gradient(135deg,#1E3A5F 0%,#2E86AB 100%);
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+">
+    <div style="position:relative; z-index:2">
+        <h2 style="color:white; font-size:40px; font-weight:800; margin:0 0 16px">
+            {{ 'home.cta_proprio_titre'|trans }}
+        </h2>
+        <p style="color:rgba(255,255,255,0.8); font-size:18px; margin:0 0 36px; max-width:600px; margin-left:auto; margin-right:auto">
+            {{ 'home.cta_proprio_desc'|trans }}
+        </p>
+        <a href="{{ path('app_register') }}"
+           style="
+               display:inline-flex; align-items:center; gap:10px;
+               background:#F0A500; color:white; padding:16px 36px;
+               border-radius:14px; font-size:17px; font-weight:800;
+               box-shadow:0 8px 25px rgba(240,165,0,0.4);
+               transition:all 0.3s;
+           "
+           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 35px rgba(240,165,0,0.5)'"
+           onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 25px rgba(240,165,0,0.4)'">
+            🏠 {{ 'home.cta_proprio_btn'|trans }}
+        </a>
+    </div>
+</section>
+
+{% endblock %}

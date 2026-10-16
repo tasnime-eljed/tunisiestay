@@ -1,0 +1,698 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}{{ logement.titre }} — TunisiaStay{% endblock %}
+
+{% block body %}
+<div style="padding-top:72px">
+
+    {# ===== GALERIE ===== #}
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;height:480px;padding:0 80px;margin-bottom:40px">
+
+        {# Image principale #}
+        <div style="grid-row:span 2;border-radius:18px 0 0 18px;overflow:hidden;background:linear-gradient(135deg,#1E3A5F,#2E86AB);display:flex;align-items:center;justify-content:center;font-size:80px">
+            {% if logement.media|length > 0 %}
+                <img src="{{ asset('uploads/logements/' ~ logement.media[0].nomFichier) }}" style="width:100%;height:100%;object-fit:cover" alt="Image principale">
+            {% else %}
+                🏠
+            {% endif %}
+        </div>
+
+        {% for i in 1..4 %}
+        <div style="
+            {{ loop.index == 2 ? 'border-radius:0 18px 0 0;' : '' }}
+            {{ loop.index == 4 ? 'border-radius:0 0 18px 0;' : '' }}
+            overflow:hidden;background:#CBD5E1;
+            display:flex;align-items:center;justify-content:center;font-size:32px;color:#94A3B8;
+        ">
+            {% if logement.media|length > i %}
+                <img src="{{ asset('uploads/logements/' ~ logement.media[i].nomFichier) }}" style="width:100%;height:100%;object-fit:cover" alt="Image">
+            {% else %}
+                📷
+            {% endif %}
+        </div>
+        {% endfor %}
+
+    </div>
+
+    {# ===== CONTENU PRINCIPAL ===== #}
+    <div style="padding:0 80px;display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start">
+
+        {# COLONNE GAUCHE #}
+        <div>
+
+            {# Titre + infos #}
+            <div style="border-bottom:1px solid #E2E8F0;padding-bottom:28px;margin-bottom:28px">
+                <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;justify-content:space-between">
+                    <div style="display:flex;gap:8px">
+                        <span style="background:#EFF6FF;color:#1D4ED8;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700">
+                            {{ logement.type|upper }}
+                        </span>
+                        <span style="background:#F0FDF4;color:#15803D;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700">
+                            ✅ {{ 'logement.verifie'|trans }}
+                        </span>
+                    </div>
+                    {# ===== BOUTON FAVORI ===== #}
+                    {% if app.user %}
+                    <button
+                        id="btn-favori"
+                        data-logement-id="{{ logement.id }}"
+                        data-csrf="{{ csrf_token('favori_toggle') }}"
+                        title="{{ isFavori ? 'Retirer des favoris' : 'Ajouter aux favoris' }}"
+                        style="
+                            background:none;border:none;cursor:pointer;padding:8px;
+                            border-radius:50%;transition:all 0.2s;
+                            display:flex;align-items:center;justify-content:center;
+                        "
+                        onmouseover="this.style.background='#FEF3C7'"
+                        onmouseout="this.style.background='none'"
+                    >
+                        <svg id="favori-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+                             fill="{{ isFavori ? '#F0A500' : 'none' }}"
+                             stroke="{{ isFavori ? '#F0A500' : '#94A3B8' }}"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </button>
+                    {% endif %}
+                </div>
+                <h1 style="font-size:32px;font-weight:800;color:#1E293B;margin:0 0 12px">
+                    {{ logement.titre }}
+                </h1>
+                <div style="display:flex;align-items:center;gap:20px;color:#64748B;font-size:15px">
+                    <span>📍 {{ logement.ville }}, {{ 'common.tunisie'|trans }}</span>
+                    <span>👥 {{ logement.maxVoyageurs }} {{ 'logement.voyageurs'|trans }}</span>
+                    <span>🛏️ {{ logement.chambres }} {{ 'logement.chambres'|trans }}</span>
+                    <span>🚿 {{ logement.sallesDeBain }} {{ 'logement.sdb'|trans }}</span>
+                    {% if noteMoyenne %}
+                        <span style="color:#1E293B;font-weight:700">⭐ {{ noteMoyenne }} ({{ avis|length }} {{ 'logement.avis'|trans }})</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Propriétaire #}
+            <div style="display:flex;align-items:center;gap:16px;border-bottom:1px solid #E2E8F0;padding-bottom:28px;margin-bottom:28px">
+                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#F0A500,#2E86AB);display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:22px;flex-shrink:0">
+                    {{ logement.proprietaire.prenom|first|upper }}
+                </div>
+                <div>
+                    <div style="font-size:18px;font-weight:700;color:#1E293B">
+                        {{ 'logement.propose_par'|trans }} {{ logement.proprietaire.prenom }} {{ logement.proprietaire.nom }}
+                    </div>
+                    <div style="color:#64748B;font-size:14px;margin-top:3px">
+                        {{ 'logement.membre_depuis'|trans }} {{ logement.proprietaire.creeLe|date('Y') }}
+                    </div>
+                </div>
+            </div>
+
+            {# Description #}
+            <div style="border-bottom:1px solid #E2E8F0;padding-bottom:28px;margin-bottom:28px">
+                <h2 style="font-size:22px;font-weight:700;color:#1E293B;margin:0 0 16px">{{ 'logement.description'|trans }}</h2>
+                <div style="color:#374151;font-size:16px;line-height:1.8;white-space:pre-line">
+                    {{ logement.description }}
+                </div>
+            </div>
+
+            {# Équipements #}
+            {% if logement.equipements|length > 0 %}
+            <div style="border-bottom:1px solid #E2E8F0;padding-bottom:28px;margin-bottom:28px">
+                <h2 style="font-size:22px;font-weight:700;color:#1E293B;margin:0 0 20px">{{ 'logement.equipements'|trans }}</h2>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:16px">
+                    {% for equipement in logement.equipements %}
+                    <div style="
+                        display:flex;align-items:center;gap:14px;padding:16px;
+                        background:#F8FAFC;border-radius:14px;border:1px solid #E2E8F0;
+                        transition:all 0.2s ease-in-out;
+                    "
+                    onmouseover="this.style.background='#white';this.style.borderColor='#F0A500';this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(240,165,0,0.1)'"
+                    onmouseout="this.style.background='#F8FAFC';this.style.borderColor='#E2E8F0';this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                        <div style="
+                            width:40px;height:40px;background:white;border-radius:10px;
+                            display:flex;align-items:center;justify-content:center;font-size:22px;
+                            box-shadow:0 2px 4px rgba(0,0,0,0.05);
+                        ">
+                            {{ equipement.icone ?? '✓' }}
+                        </div>
+                        <div>
+                            <div style="font-size:14px;color:#1E293B;font-weight:700">{{ equipement.nom }}</div>
+                            {% if equipement.categorie %}
+                            <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">
+                                {{ equipement.categorie }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {# Emplacement (Map) #}
+            <div style="border-bottom:1px solid #E2E8F0;padding-bottom:28px;margin-bottom:28px">
+                <h2 style="font-size:22px;font-weight:700;color:#1E293B;margin:0 0 16px">{{ 'logement.emplacement'|trans }}</h2>
+                <div style="color:#64748B;font-size:14px;margin-bottom:16px">
+                    📍 {{ logement.adresse ? logement.adresse ~ ', ' : '' }}{{ logement.ville }}, {{ logement.region }}
+                </div>
+                <div id="map" style="height:400px; width:100%; border-radius:18px; border:1px solid #E2E8F0; z-index:1"></div>
+            </div>
+
+            {# Calendrier #}
+            <div style="border-bottom:1px solid #E2E8F0;padding-bottom:28px;margin-bottom:28px">
+                <h2 style="font-size:22px;font-weight:700;color:#1E293B;margin:0 0 8px">{{ 'logement.disponibilites'|trans }}</h2>
+                <p style="color:#64748B;font-size:14px;margin:0 0 20px">
+                    {{ 'logement.dates_reservees'|trans }}
+                </p>
+                <div id="inline-calendar" style="width:100%;border-radius:14px;overflow:hidden;"></div>
+                <div id="dates-bloquees" style="display:none">{{ datesBloquees }}</div>
+            </div>
+
+            {# ===== SECTION AVIS ===== #}
+            <div id="avis-section" style="margin-top:20px">
+                <h2 style="font-size:22px;font-weight:700;color:#1E293B;margin:0 0 6px">
+                    {% if avis|length > 0 %}
+                        ⭐ {{ noteMoyenne }} — {{ avis|length }} {{ 'logement.avis'|trans }}
+                    {% else %}
+                        {{ 'logement.avis'|trans }}
+                    {% endif %}
+                </h2>
+
+                {% if avis|length > 0 %}
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:24px">
+                    {% for avi in avis %}
+                    <div style="padding:20px;background:#F8FAFC;border-radius:14px;border:1px solid #E2E8F0">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1E3A5F,#2E86AB);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px">
+                                {{ avi.voyageur.prenom|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:14px;color:#1E293B">{{ avi.voyageur.prenom }}</div>
+                                <div style="font-size:12px;color:#94A3B8">{{ avi.creeLe|date('M Y') }}</div>
+                            </div>
+                            <div style="margin-left:auto">
+                                {% for i in 1..5 %}
+                                    <span style="color:{{ i <= avi.note ? '#F0A500' : '#CBD5E1' }}">★</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0">
+                            {{ avi.commentaire|length > 150 ? avi.commentaire|slice(0,150) ~ '...' : avi.commentaire }}
+                        </p>
+                        {% if avi.reponseProprietaire %}
+                        <div style="margin-top:12px;padding:12px;background:#EFF6FF;border-radius:10px;border-left:3px solid #1E3A5F">
+                            <div style="font-size:12px;font-weight:700;color:#1E3A5F;margin-bottom:4px">🏠 {{ 'logement.reponse_proprio'|trans }}</div>
+                            <p style="color:#374151;font-size:13px;line-height:1.6;margin:0">{{ avi.reponseProprietaire }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color:#94A3B8;font-size:15px;margin-top:16px">
+                    {{ 'logement.aucun_avis'|trans }}
+                </p>
+                {% endif %}
+
+                {# ===== FORMULAIRE LAISSER UN AVIS ===== #}
+                {% if app.user and 'ROLE_TRAVELER' in app.user.roles %}
+                <div style="margin-top:36px;padding:28px;background:linear-gradient(135deg,#F8FAFC,#EFF6FF);border-radius:16px;border:1px solid #DBEAFE">
+                    <h3 style="font-size:18px;font-weight:700;color:#1E293B;margin:0 0 20px">
+                        ⭐ {{ 'logement.nouveau_avis'|trans }}
+                    </h3>
+                    <form id="review-form" action="{{ path('app_review_logement_new', {id: logement.id}) }}" method="POST" onsubmit="return validateReview(event)">
+                        {# Note globale avec étoiles cliquables #}
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:10px;letter-spacing:0.5px">{{ 'logement.note_globale'|trans }} *</label>
+                            <div id="star-rating" style="display:flex;gap:8px">
+                                {% for i in 1..5 %}
+                                <label style="cursor:pointer">
+                                    <input type="radio" name="note" value="{{ i }}" required style="display:none">
+                                    <span class="star" data-value="{{ i }}" style="font-size:36px;color:#CBD5E1;transition:color 0.15s">★</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {# Notes détaillées #}
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:#64748B;margin-bottom:6px">{{ 'logement.proprete'|trans }}</label>
+                                <select name="note_nettete" style="width:100%;padding:8px 12px;border:1px solid #E2E8F0;border-radius:8px;font-size:14px;background:white;outline:none">
+                                    <option value="">—</option>
+                                    {% for i in 1..5 %}<option value="{{ i }}">{{ i }} / 5</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:#64748B;margin-bottom:6px">{{ 'logement.emplacement'|trans }}</label>
+                                <select name="note_emplacement" style="width:100%;padding:8px 12px;border:1px solid #E2E8F0;border-radius:8px;font-size:14px;background:white;outline:none">
+                                    <option value="">—</option>
+                                    {% for i in 1..5 %}<option value="{{ i }}">{{ i }} / 5</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:700;color:#64748B;margin-bottom:6px">{{ 'logement.rapport_qualite'|trans }}</label>
+                                <select name="note_rapport_qualite" style="width:100%;padding:8px 12px;border:1px solid #E2E8F0;border-radius:8px;font-size:14px;background:white;outline:none">
+                                    <option value="">—</option>
+                                    {% for i in 1..5 %}<option value="{{ i }}">{{ i }} / 5</option>{% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        {# Commentaire #}
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:8px;letter-spacing:0.5px">{{ 'logement.commentaire'|trans }}</label>
+                            <textarea name="commentaire" rows="4" placeholder="{{ 'logement.partagez_experience'|trans }}"
+                                style="width:100%;padding:14px;border:1px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;outline:none;transition:border-color 0.2s;box-sizing:border-box"
+                                onfocus="this.style.borderColor='#1E3A5F'"
+                                onblur="this.style.borderColor='#E2E8F0'"></textarea>
+                        </div>
+
+                        <button type="submit" style="
+                            padding:14px 32px;
+                            background:linear-gradient(135deg,#1E3A5F,#2E86AB);
+                            color:white;border:none;border-radius:12px;
+                            font-size:15px;font-weight:700;cursor:pointer;
+                            box-shadow:0 4px 15px rgba(30,58,95,0.25);
+                            font-family:inherit;transition:all 0.2s;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'">
+                            {{ 'logement.ajouter_avis'|trans }} ⭐
+                        </button>
+                    </form>
+                </div>
+                {% elseif not app.user %}
+                <div style="margin-top:24px;padding:16px;background:#F8FAFC;border-radius:12px;border:1px dashed #CBD5E1;text-align:center">
+                    <p style="color:#64748B;font-size:14px;margin:0">
+                        <a href="{{ path('app_login') }}" style="color:#1E3A5F;font-weight:700">{{ 'logement.connectez_vous'|trans }}</a> {{ 'logement.laisser_avis'|trans }}.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {# COLONNE DROITE — STICKY BOOKING WIDGET #}
+        <div style="position:sticky;top:88px">
+            <div style="
+                background:white;border-radius:20px;
+                padding:28px;
+                box-shadow:0 8px 40px rgba(0,0,0,0.12);
+                border:1px solid #E2E8F0;
+            ">
+
+                {# Prix #}
+                <div style="margin-bottom:20px">
+                    <span style="font-size:30px;font-weight:800;color:#1E3A5F">{{ logement.prixParNuit|format_price(logement.devise) }}</span>
+                    <span style="color:#64748B;font-size:15px"> / {{ 'logement.nuit'|trans }}</span>
+                    {% if noteMoyenne %}
+                    <div style="margin-top:6px;font-size:13px;color:#64748B">
+                        ⭐ {{ noteMoyenne }} · {{ avis|length }} {{ 'logement.avis'|trans }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# Formulaire réservation #}
+                {% if app.user and 'ROLE_TRAVELER' in app.user.roles %}
+                <form id="booking-form" action="{{ path('app_booking_create', {id: logement.id}) }}" method="POST" onsubmit="return validateBooking(event)">
+
+                    {# Calendrier de sélection inline #}
+                    <div style="margin-bottom:16px">
+                        <div id="booking-calendar" style="width:100%;border-radius:14px;overflow:hidden;"></div>
+                        {# Inputs cachés envoyés au backend #}
+                        <input type="hidden" name="check_in"  id="hidden-check-in">
+                        <input type="hidden" name="check_out" id="hidden-check-out">
+                    </div>
+
+                    {# Récap dates sélectionnées #}
+                    <div id="booking-recap" style="
+                        display:none;
+                        padding:14px 16px;
+                        background:#F0F9FF;
+                        border:1px solid #BAE6FD;
+                        border-radius:12px;
+                        margin-bottom:14px;
+                        font-size:13px;
+                        color:#0369A1;
+                    ">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <span style="font-weight:700">{{ 'booking.arrivee'|trans }} :</span>
+                                <span id="recap-arrivee"></span>
+                            </div>
+                            <span style="color:#CBD5E1">→</span>
+                            <div>
+                                <span style="font-weight:700">{{ 'booking.depart'|trans }} :</span>
+                                <span id="recap-depart"></span>
+                            </div>
+                            <div style="font-weight:800;color:#1E3A5F">
+                                <span id="recap-nuits"></span> {{ 'booking.nuit_s'|trans }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Voyageurs #}
+                    <div style="border:2px solid #E2E8F0;border-radius:14px;overflow:hidden;margin-bottom:14px">
+                        <div style="padding:12px 14px">
+                            <div style="font-size:10px;font-weight:700;color:#374151;letter-spacing:1px;margin-bottom:4px">{{ 'booking.voyageurs'|trans|upper }}</div>
+                            <select name="nb_voyageurs" style="border:none;outline:none;font-size:14px;color:#1E293B;width:100%;background:transparent;font-family:inherit">
+                                {% for i in 1..logement.maxVoyageurs %}
+                                    <option value="{{ i }}">{{ i }} {{ i > 1 ? 'logement.voyageurs'|trans : 'logement.voyageur'|trans }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" style="
+                        width:100%;padding:16px;margin-top:8px;
+                        background:linear-gradient(135deg,#F0A500,#e8950a);
+                        color:white;border:none;border-radius:14px;
+                        font-size:16px;font-weight:800;cursor:pointer;
+                        box-shadow:0 8px 25px rgba(240,165,0,0.35);
+                        font-family:inherit;transition:all 0.2s;
+                    "
+                    onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 30px rgba(240,165,0,0.45)'"
+                    onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 25px rgba(240,165,0,0.35)'">
+                        {{ 'booking.reserver'|trans }}
+                    </button>
+
+                    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #F1F5F9">
+                        <div style="display:flex;justify-content:space-between;font-size:14px;color:#64748B;margin-bottom:8px">
+                            <span>{{ logement.prixParNuit }} × {{ 'booking.nuits'|trans }}</span>
+                            <span id="calcul-base">—</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:14px;color:#64748B;margin-bottom:8px">
+                            <span>{{ 'booking.frais_service'|trans }} (12%)</span>
+                            <span id="calcul-commission">—</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:#1E293B;margin-top:10px;padding-top:10px;border-top:1px solid #E2E8F0">
+                            <span>{{ 'booking.total'|trans }}</span>
+                            <span id="calcul-total">—</span>
+                        </div>
+                    </div>
+                </form>
+
+                {% elseif not app.user %}
+                <a href="{{ path('app_login') }}" style="
+                    display:block;text-align:center;padding:16px;
+                    background:linear-gradient(135deg,#1E3A5F,#2E86AB);
+                    color:white;border-radius:14px;font-size:16px;font-weight:800;
+                    box-shadow:0 6px 20px rgba(30,58,95,0.3);
+                ">
+                    {{ 'booking.connexion_pour_reserver'|trans }}
+                </a>
+                {% else %}
+                <div style="padding:16px;background:#FEF3C7;border-radius:12px;font-size:14px;color:#92400E;text-align:center">
+                    ⚠️ {{ 'booking.seuls_voyageurs'|trans }}
+                </div>
+                {% endif %}
+
+                <p style="text-align:center;color:#94A3B8;font-size:12px;margin:14px 0 0">
+                    {{ 'booking.info_paiement'|trans }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{# Script calcul prix dynamique #}
+<script>
+const prix = {{ logement.prixParNuit }};
+const commission = 0.12;
+const devise = '{{ logement.devise }}';
+
+function calculerPrix() {
+    const arrivee = document.querySelector('input[name="check_in"]').value;
+    const depart = document.querySelector('input[name="check_out"]').value;
+    if (!arrivee || !depart) return;
+
+    const diff = Math.ceil((new Date(depart) - new Date(arrivee)) / (1000 * 60 * 60 * 24));
+    if (diff <= 0) return;
+
+    const base = prix * diff;
+    const comm = Math.round(base * commission * 100) / 100;
+    const total = base + comm;
+
+    document.getElementById('calcul-base').textContent = base.toFixed(2) + ' ' + devise;
+    document.getElementById('calcul-commission').textContent = comm.toFixed(2) + ' ' + devise;
+    document.getElementById('calcul-total').textContent = total.toFixed(2) + ' ' + devise;
+}
+
+document.querySelector('input[name="check_in"]')?.addEventListener('change', calculerPrix);
+document.querySelector('input[name="check_out"]')?.addEventListener('change', calculerPrix);
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<style>
+    /* Calendrier inline disponibilités (colonne gauche) */
+    #inline-calendar .flatpickr-calendar {
+        font-family: inherit !important;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: none;
+        width: 100% !important;
+    }
+    #inline-calendar .flatpickr-days,
+    #inline-calendar .dayContainer {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Calendrier inline réservation (colonne droite) */
+    #booking-calendar .flatpickr-calendar {
+        font-family: inherit !important;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        width: 100% !important;
+    }
+    #booking-calendar .flatpickr-days,
+    #booking-calendar .dayContainer {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Couleurs communes */
+    .flatpickr-day.disabled,
+    .flatpickr-day.disabled:hover    { color:#CBD5E1; text-decoration:line-through; cursor:not-allowed; }
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange          { background:#1E3A5F !important; border-color:#1E3A5F !important; color:#fff !important; }
+    .flatpickr-day.inRange           { background:#DBEAFE !important; border-color:#DBEAFE !important; color:#1E3A5F !important; }
+    .flatpickr-day:hover:not(.disabled):not(.selected) { background:#F0F9FF; border-color:#BAE6FD; }
+    .flatpickr-months .flatpickr-month { color:#1E293B; font-weight:700; }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ---- Initialisation Carte (Leaflet) ----
+        const lat = {{ logement.latitude ?? 33.8869 }}; 
+        const lng = {{ logement.longitude ?? 9.5375 }};
+        const map = L.map('map').setView([lat, lng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        L.marker([lat, lng]).addTo(map)
+            .bindPopup('{{ logement.titre|e('js') }}')
+            .openPopup();
+
+        const blockedDates = JSON.parse(document.getElementById('dates-bloquees').textContent || '[]');
+
+        // ---- Calendrier inline disponibilités (lecture seule) ----
+        flatpickr('#inline-calendar', {
+            inline: true,
+            minDate: 'today',
+            disable: blockedDates,
+            locale: 'fr',
+            mode: 'range',
+            showMonths: window.innerWidth > 900 ? 2 : 1,
+            onReady: function(_, __, fp) {
+                fp.calendarContainer.style.width = '100%';
+            }
+        });
+
+        // ---- Calendrier inline réservation (sélection plage) ----
+        const bookingCal = document.getElementById('booking-calendar');
+        const hiddenIn   = document.getElementById('hidden-check-in');
+        const hiddenOut  = document.getElementById('hidden-check-out');
+        const recap      = document.getElementById('booking-recap');
+
+        if (bookingCal) {
+            flatpickr('#booking-calendar', {
+                inline: true,
+                mode: 'range',
+                minDate: 'today',
+                disable: blockedDates,
+                locale: '{{ app.request.locale }}',
+                showMonths: 1,
+                onReady: function(_, __, fp) {
+                    fp.calendarContainer.style.width = '100%';
+                },
+                onChange: function(selectedDates) {
+                    if (selectedDates.length === 2) {
+                        const fmt = function(d) {
+                            const locale = '{{ app.request.locale }}' === 'ar' ? 'ar-TN' : ('{{ app.request.locale }}' === 'en' ? 'en-GB' : 'fr-FR');
+                            return d.toLocaleDateString(locale, {day:'2-digit', month:'short', year:'numeric'});
+                        };
+                        const ymd = function(d) {
+                            return d.toISOString().split('T')[0];
+                        };
+                        const diff = Math.ceil((selectedDates[1] - selectedDates[0]) / 86400000);
+
+                        hiddenIn.value  = ymd(selectedDates[0]);
+                        hiddenOut.value = ymd(selectedDates[1]);
+
+                        document.getElementById('recap-arrivee').textContent = fmt(selectedDates[0]);
+                        document.getElementById('recap-depart').textContent  = fmt(selectedDates[1]);
+                        document.getElementById('recap-nuits').textContent   = diff;
+                        document.getElementById('recap-s').textContent       = diff > 1 ? 's' : '';
+                        recap.style.display = 'block';
+
+                        // Recalcul du prix
+                        const base  = prix * diff;
+                        const comm  = Math.round(base * commission * 100) / 100;
+                        const total = base + comm;
+                        document.getElementById('calcul-base').textContent       = base.toFixed(2)  + ' ' + devise;
+                        document.getElementById('calcul-commission').textContent = comm.toFixed(2)  + ' ' + devise;
+                        document.getElementById('calcul-total').textContent      = total.toFixed(2) + ' ' + devise;
+                    } else {
+                        recap.style.display = 'none';
+                        hiddenIn.value  = '';
+                        hiddenOut.value = '';
+                        document.getElementById('calcul-base').textContent       = '—';
+                        document.getElementById('calcul-commission').textContent = '—';
+                        document.getElementById('calcul-total').textContent      = '—';
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+{# ===== JS : Étoiles + Favori AJAX ===== #}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ---- STAR RATING INTERACTIF ----
+    const starContainer = document.getElementById('star-rating');
+    if (starContainer) {
+        const stars = starContainer.querySelectorAll('.star');
+        const radios = starContainer.querySelectorAll('input[type=radio]');
+
+        const updateStars = (val) => {
+            stars.forEach(function (s) {
+                s.style.color = parseInt(s.dataset.value) <= val ? '#F0A500' : '#CBD5E1';
+            });
+        };
+
+        radios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                updateStars(parseInt(this.value));
+            });
+        });
+
+        stars.forEach(function (star) {
+            star.addEventListener('mouseover', function () {
+                updateStars(parseInt(this.dataset.value));
+            });
+
+            star.addEventListener('mouseout', function () {
+                const checked = starContainer.querySelector('input:checked');
+                updateStars(checked ? parseInt(checked.value) : 0);
+            });
+        });
+    }
+
+    // ---- BOUTON FAVORI AJAX ----
+    const btnFavori = document.getElementById('btn-favori');
+    if (btnFavori) {
+        btnFavori.addEventListener('click', function () {
+            const logementId = this.dataset.logementId;
+            const csrf = this.dataset.csrf;
+            const icon = document.getElementById('favori-icon');
+
+            fetch('/favori/toggle/' + logementId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: '_token=' + encodeURIComponent(csrf)
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.status === 'added') {
+                    icon.setAttribute('fill', '#F0A500');
+                    icon.setAttribute('stroke', '#F0A500');
+                    btnFavori.title = '{{ 'logement.retirer_favoris'|trans }}';
+                    showToast('❤️ {{ 'logement.ajoute_favoris'|trans }}', '#10B981');
+                } else {
+                    icon.setAttribute('fill', 'none');
+                    icon.setAttribute('stroke', '#94A3B8');
+                    btnFavori.title = '{{ 'logement.ajouter_favoris'|trans }}';
+                    showToast('{{ 'logement.retire_favoris'|trans }}', '#64748B');
+                }
+            })
+            .catch(function () {
+                showToast('Une erreur est survenue', '#EF4444');
+            });
+        });
+    }
+
+    // ---- VALIDATION RÉSERVATION ----
+    window.validateBooking = function(e) {
+        const checkIn = document.getElementById('hidden-check-in').value;
+        const checkOut = document.getElementById('hidden-check-out').value;
+        
+        if (!checkIn || !checkOut) {
+            e.preventDefault();
+            showToast('⚠️ {{ 'booking.selection_dates_necessaire'|trans }}', '#EF4444');
+            return false;
+        }
+        return true;
+    };
+
+    // ---- VALIDATION AVIS ----
+    window.validateReview = function(e) {
+        const note = document.querySelector('input[name="note"]:checked');
+        const comment = document.querySelector('textarea[name="commentaire"]').value;
+
+        if (!note) {
+            e.preventDefault();
+            showToast('⚠️ {{ 'logement.selection_note_necessaire'|trans }}', '#EF4444');
+            return false;
+        }
+
+        if (comment.trim().length < 5) {
+            e.preventDefault();
+            showToast('⚠️ {{ 'logement.commentaire_trop_court'|trans }}', '#EF4444');
+            return false;
+        }
+
+        return true;
+    };
+
+    // ---- TOAST NOTIFICATION ----
+    function showToast(message, color) {
+        const existing = document.getElementById('ts-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.id = 'ts-toast';
+        toast.textContent = message;
+        toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:' + color + ';color:white;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.18);opacity:1;transition:opacity 0.4s';
+        document.body.appendChild(toast);
+        setTimeout(function () {
+            toast.style.opacity = '0';
+            setTimeout(function () { toast.remove(); }, 400);
+        }, 3000);
+    }
+
+});
+</script>
+
+{% endblock %}

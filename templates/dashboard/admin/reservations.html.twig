@@ -1,0 +1,83 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}ADMIN{% endblock %}
+{% block page_title %}Toutes les réservations{% endblock %}
+{% block page_subtitle %}Historique global de la plateforme{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/admin/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+<form method="GET" action="{{ path('admin_reservations') }}" style="display:flex; flex-wrap:wrap; gap:16px; margin-bottom: 24px; align-items: flex-end; background: white; padding: 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #F1F5F9">
+    <div style="display:flex; flex-direction:column; gap:6px;">
+        <label for="date_debut" style="font-size:13px; font-weight:600; color:#374151">Date de début</label>
+        <input type="date" id="date_debut" name="date_debut" value="{{ date_debut|default('') }}" style="padding:10px 14px; border:1px solid #E2E8F0; border-radius:8px; font-size:14px; color:#1E293B; outline:none;">
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+        <label for="date_fin" style="font-size:13px; font-weight:600; color:#374151">Date de fin</label>
+        <input type="date" id="date_fin" name="date_fin" value="{{ date_fin|default('') }}" style="padding:10px 14px; border:1px solid #E2E8F0; border-radius:8px; font-size:14px; color:#1E293B; outline:none;">
+    </div>
+    <div style="display:flex; gap:10px;">
+        <button type="submit" style="padding:10px 20px; background:#2E86AB; color:white; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+            🔍 Filtrer
+        </button>
+        {% if (date_debut is defined and date_debut) or (date_fin is defined and date_fin) %}
+            <a href="{{ path('admin_reservations') }}" style="padding:10px 20px; background:#F1F5F9; color:#475569; text-decoration:none; border-radius:8px; font-size:14px; font-weight:600; text-align:center;">
+                Réinitialiser
+            </a>
+        {% endif %}
+    </div>
+</form>
+
+<div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+    <table style="width:100%;border-collapse:collapse;text-align:left">
+        <thead style="background:#F8FAFC;border-bottom:1px solid #E2E8F0">
+            <tr>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">ID / Date</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Logement & Hôte</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Voyageur</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Période</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Montant</th>
+                <th style="padding:16px 20px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservations %}
+            <tr style="border-bottom:1px solid #F1F5F9">
+                <td style="padding:16px 20px">
+                    <div style="font-size:13px;font-weight:700;color:#1E293B">#{{ r.id }}</div>
+                    <div style="font-size:12px;color:#64748B;margin-top:2px">{{ r.creeLe|date('d/m/Y H:i') }}</div>
+                </td>
+                <td style="padding:16px 20px">
+                    <div style="font-size:13px;font-weight:600;color:#1E293B">{{ r.logement.titre|length > 25 ? r.logement.titre|slice(0, 25) ~ '...' : r.logement.titre }}</div>
+                    <div style="font-size:12px;color:#64748B;margin-top:2px">Par {{ r.logement.proprietaire.prenom }}</div>
+                </td>
+                <td style="padding:16px 20px">
+                    <div style="font-size:13px;font-weight:500;color:#374151">{{ r.voyageur.prenom }} {{ r.voyageur.nom }}</div>
+                </td>
+                <td style="padding:16px 20px;font-size:13px;color:#374151">
+                    {{ r.dateArrivee|date('d/m') }} → {{ r.dateDepart|date('d/m') }}
+                </td>
+                <td style="padding:16px 20px">
+                    <div style="font-size:14px;font-weight:700;color:#1E3A5F">{{ r.montantTotal }} {{ r.devise }}</div>
+                    <div style="font-size:12px;color:#10B981;font-weight:600">Com: {{ r.montantCommission }} {{ r.devise }}</div>
+                </td>
+                <td style="padding:16px 20px">
+                    {% set sc = {
+                        'en_attente': ['#FEF3C7','#92400E'],
+                        'confirme':   ['#D1FAE5','#065F46'],
+                        'annule':     ['#FEE2E2','#991B1B'],
+                        'termine':    ['#EDE9FE','#4C1D95'],
+                    } %}
+                    {% set c = sc[r.statut] ?? ['#F1F5F9','#374151'] %}
+                    <span style="background:{{ c[0] }};color:{{ c[1] }};padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">
+                        {{ r.statut|replace({'_': ' '})|upper }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

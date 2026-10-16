@@ -1,0 +1,68 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.proprietaire'|trans }}{% endblock %}
+{% block page_title %}{{ 'dashboard.revenus'|trans }}{% endblock %}
+{% block page_subtitle %}{{ 'revenus.historique'|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/owner/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+{# Total #}
+<div style="background:linear-gradient(135deg,#1E3A5F,#2E86AB);border-radius:20px;padding:32px;margin-bottom:24px;color:white">
+    <p style="margin:0 0 8px;font-size:14px;color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:1px;text-transform:uppercase">
+        💰 {{ 'dashboard.total_revenus'|trans }}
+    </p>
+    <div style="font-size:48px;font-weight:800">{{ total|format_price('TND') }}</div>
+    <p style="margin:8px 0 0;font-size:14px;color:rgba(255,255,255,0.7)">
+        {{ reservations|length }} {{ 'revenus.sejours_termines'|trans }}
+    </p>
+</div>
+
+{% if reservations is empty %}
+<div style="background:white;border-radius:16px;padding:60px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+    <div style="font-size:56px;margin-bottom:16px">💸</div>
+    <p style="color:#64748B;font-size:15px;margin:0">{{ 'revenus.aucun_revenu'|trans }}</p>
+</div>
+{% else %}
+<div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+    <table style="width:100%;border-collapse:collapse">
+        <thead style="background:#F8FAFC">
+            <tr>
+                {% for th in [
+                    'revenus.th_logement'|trans, 
+                    'revenus.th_voyageur'|trans, 
+                    'revenus.th_sejour'|trans, 
+                    'revenus.th_brut'|trans, 
+                    'revenus.th_commission'|trans, 
+                    'revenus.th_net'|trans
+                ] %}
+                <th style="text-align:left;padding:14px 16px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">{{ th }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservations %}
+            <tr style="border-bottom:1px solid #F1F5F9">
+                <td style="padding:14px 16px;font-size:14px;font-weight:600;color:#1E293B">
+                    {{ r.logement.titre|length > 30 ? r.logement.titre|slice(0,30) ~ '...' : r.logement.titre }}
+                </td>
+                <td style="padding:14px 16px;font-size:14px;color:#374151">
+                    {{ r.voyageur.prenom }} {{ r.voyageur.nom }}
+                </td>
+                <td style="padding:14px 16px;font-size:13px;color:#64748B">
+                    {{ r.dateArrivee|date('d/m/Y') }} → {{ r.dateDepart|date('d/m/Y') }}
+                </td>
+                <td style="padding:14px 16px;font-size:14px;color:#374151">{{ r.montantBase|format_price(r.devise) }}</td>
+                <td style="padding:14px 16px;font-size:14px;color:#EF4444">-{{ r.montantCommission|format_price(r.devise) }}</td>
+                <td style="padding:14px 16px;font-size:15px;font-weight:800;color:#10B981">
+                    {{ (r.montantBase - r.montantCommission)|format_price(r.devise) }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

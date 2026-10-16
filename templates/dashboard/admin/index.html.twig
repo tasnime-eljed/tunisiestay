@@ -1,0 +1,114 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.admin'|trans }}{% endblock %}
+{% block page_title %}{{ 'dashboard.accueil'|trans }}{% endblock %}
+{% block page_subtitle %}{{ 'dashboard.vue_ensemble'|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/admin/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px">
+    {% for stat in [
+        [revenusTotaux, 'dashboard.revenus_totaux'|trans, '💰', '#F0A500', '#FEF3C7', 'TND'],
+        [totalReservations, 'dashboard.reservations'|trans, '📅', '#10B981', '#D1FAE5', ''],
+        [totalLogements, 'nav.logements'|trans, '🏠', '#EF4444', '#FEE2E2', ''],
+        [totalUtilisateurs, 'dashboard.utilisateurs'|trans, '👥', '#8B5CF6', '#EDE9FE', '']
+    ] %}
+    <div style="background:white; border-radius:16px; padding:22px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid #F1F5F9">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
+            <span style="font-size:13px; font-weight:500; color:#64748B">{{ stat[1] }}</span>
+            <div style="width:40px; height:40px; border-radius:10px; background:{{ stat[4] }}; display:flex; align-items:center; justify-content:center; font-size:20px">
+                {{ stat[2] }}
+            </div>
+        </div>
+        <div style="font-size:28px; font-weight:800; color:#1E293B">
+            {{ stat[0] }} <span style="font-size:16px">{{ stat[5] }}</span>
+        </div>
+        <div style="font-size:12px; color:#94A3B8; margin-top:4px">{{ 'dashboard.ce_mois_ci'|trans }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px">
+    {# Dernières Réservations #}
+    <div style="background:white; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid #F1F5F9">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px">
+            <h3 style="margin:0; font-size:16px; font-weight:700; color:#1E293B">📅 {{ 'dashboard.derniere_reservations'|trans }}</h3>
+            <a href="{{ path('admin_reservations') }}" style="font-size:13px; color:#2E86AB; text-decoration:none; font-weight:600">{{ 'dashboard.voir_tout'|trans }} →</a>
+        </div>
+
+        {% if dernieresReservations is empty %}
+        <div style="text-align:center; padding:32px 0">
+            <div style="font-size:40px; margin-bottom:12px">📭</div>
+            <div style="font-size:14px; color:#94A3B8">{{ 'dashboard.aucune_reservation_moment'|trans }}</div>
+        </div>
+        {% else %}
+        <div style="display:flex; flex-direction:column; gap:12px">
+            {% for r in dernieresReservations %}
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #F8FAFC">
+                <div>
+                    <div style="font-size:14px; font-weight:600; color:#1E293B">{{ r.logement.titre }}</div>
+                    <div style="font-size:12px; color:#64748B; margin-top:2px">{{ 'dashboard.par'|trans }} {{ r.voyageur.prenom }} {{ r.voyageur.nom }}</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:14px; font-weight:700; color:#1E3A5F">{{ r.montantTotal }} {{ r.devise }}</div>
+                    <div style="font-size:12px; color:#10B981; font-weight:600; margin-top:2px">+{{ r.montantCommission }} {{ r.devise }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    {# En attente de validation #}
+    <div style="background:white; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid #F1F5F9; overflow:auto; max-height:480px">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px">
+            <h3 style="margin:0; font-size:16px; font-weight:700; color:#1E293B">⏳ {{ 'dashboard.en_attente_validation'|trans }}</h3>
+            {% set totalPending = logementsPending|length + reservationsPending|length %}
+            {% if totalPending > 0 %}
+            <span style="background:#FEF3C7;color:#92400E;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">
+                {{ totalPending }} {{ 'dashboard.en_attente'|trans }}
+            </span>
+            {% endif %}
+        </div>
+
+        {% if logementsPending is empty and reservationsPending is empty %}
+        <div style="text-align:center; padding:32px 0">
+            <div style="font-size:40px; margin-bottom:12px">✅</div>
+            <div style="font-size:14px; color:#94A3B8">{{ 'dashboard.tout_a_jour'|trans }}</div>
+        </div>
+        {% else %}
+        <div style="display:flex; flex-direction:column; gap:10px">
+
+            {# --- Logements en attente --- #}
+            {% for l in logementsPending|slice(0, 3) %}
+            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:#FEF9EC; border-radius:10px; border:1px solid #FDE68A">
+                <div style="width:36px; height:36px; border-radius:8px; background:#FEF3C7; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0">🏠</div>
+                <div style="flex:1; min-width:0">
+                    <div style="font-size:13px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ l.titre }}</div>
+                    <div style="font-size:11px; color:#92400E; font-weight:600; margin-top:2px">📋 {{ 'dashboard.nouveau_logement_label'|trans }} — {{ 'dashboard.par'|trans }} {{ l.proprietaire.prenom }}</div>
+                </div>
+                <a href="{{ path('admin_logements') }}" style="font-size:11px; font-weight:700; color:#92400E; text-decoration:none; background:#FDE68A; padding:4px 10px; border-radius:6px; white-space:nowrap">{{ 'dashboard.gerer'|trans }}</a>
+            </div>
+            {% endfor %}
+
+            {# --- Réservations reportées en attente --- #}
+            {% for r in reservationsPending %}
+            <div style="display:flex; align-items:center; gap:12px; padding:10px; background:#EFF6FF; border-radius:10px; border:1px solid #BFDBFE">
+                <div style="width:36px; height:36px; border-radius:8px; background:#DBEAFE; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0">📅</div>
+                <div style="flex:1; min-width:0">
+                    <div style="font-size:13px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ r.logement.titre }}</div>
+                    <div style="font-size:11px; color:#1D4ED8; font-weight:600; margin-top:2px">
+                        {{ 'dashboard.reservation_reportee'|trans }} — {{ r.dateArrivee|date('d/m/Y') }} → {{ r.dateDepart|date('d/m/Y') }}
+                    </div>
+                    <div style="font-size:11px; color:#64748B; margin-top:1px">{{ 'dashboard.par'|trans }} {{ r.voyageur.prenom }} {{ r.voyageur.nom }}</div>
+                </div>
+                <a href="{{ path('admin_reservations') }}" style="font-size:11px; font-weight:700; color:#1D4ED8; text-decoration:none; background:#DBEAFE; padding:4px 10px; border-radius:6px; white-space:nowrap">{{ 'home.voir'|trans }}</a>
+            </div>
+            {% endfor %}
+
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

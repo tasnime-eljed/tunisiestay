@@ -1,0 +1,136 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.proprietaire'|trans }}{% endblock %}
+{% block page_title %}{{ 'dashboard.accueil'|trans }}{% endblock %}
+{% block page_subtitle %}{{ 'dashboard.bienvenue'|trans }}, {{ app.user.prenom }} !{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/owner/_sidebar.html.twig' %}{% endblock %}
+
+{% block header_actions %}
+    <a href="{{ path('owner_logement_new') }}" style="
+        display:inline-flex; align-items:center; gap:8px;
+        padding:10px 20px; background:linear-gradient(135deg,#F0A500,#e8950a);
+        color:white; border-radius:10px; font-size:13px; font-weight:700;
+        box-shadow:0 4px 12px rgba(240,165,0,0.3); text-decoration:none;
+    ">
+        ➕ {{ 'dashboard.nouveau_logement'|trans }}
+    </a>
+{% endblock %}
+
+{% block content %}
+
+{# Stats #}
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px">
+    {% for stat in [
+        [nbLogements, 'dashboard.stat_logements'|trans, '🏠', '#2E86AB', '#DBEAFE'],
+        [nbReservationsActives, 'dashboard.reservations_actives'|trans, '📅', '#10B981', '#D1FAE5'],
+        [revenus|format_price('TND'), 'dashboard.revenus_totaux'|trans, '💰', '#F0A500', '#FEF3C7'],
+        [noteMoyenne ? noteMoyenne ~ '/5' : 'N/A', 'logement.avis'|trans, '⭐', '#8B5CF6', '#EDE9FE'],
+    ] %}
+    <div style="background:white; border-radius:16px; padding:22px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid #F1F5F9">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
+            <span style="font-size:13px; font-weight:500; color:#64748B">{{ stat[1] }}</span>
+            <div style="width:40px; height:40px; border-radius:10px; background:{{ stat[4] }}; display:flex; align-items:center; justify-content:center; font-size:20px">
+                {{ stat[2] }}
+            </div>
+        </div>
+        <div style="font-size:28px; font-weight:800; color:#1E293B">{{ stat[0] }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px">
+
+    {# Dernières réservations #}
+    <div style="background:white; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid #F1F5F9">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px">
+            <h3 style="margin:0; font-size:16px; font-weight:700; color:#1E293B">📅 {{ 'dashboard.derniere_reservations'|trans }}</h3>
+            <a href="{{ path('owner_reservations') }}" style="font-size:13px; color:#2E86AB; text-decoration:none; font-weight:600">{{ 'dashboard.voir_tout'|trans }} →</a>
+        </div>
+
+        {% if reservations is empty %}
+        <div style="text-align:center; padding:32px; color:#94A3B8">
+            <div style="font-size:40px; margin-bottom:10px">📭</div>
+            <p style="margin:0; font-size:14px">{{ 'dashboard.aucune_reservation_moment'|trans }}</p>
+        </div>
+        {% else %}
+        <table style="width:100%; border-collapse:collapse">
+            <thead>
+                <tr style="border-bottom:2px solid #F1F5F9">
+                    <th style="text-align:left; padding:10px 12px; font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px">{{ 'dashboard.logement'|trans }}</th>
+                    <th style="text-align:left; padding:10px 12px; font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px">{{ 'dashboard.voyageur_label'|trans }}</th>
+                    <th style="text-align:left; padding:10px 12px; font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px">{{ 'dashboard.dates'|trans }}</th>
+                    <th style="text-align:left; padding:10px 12px; font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px">{{ 'dashboard.statut'|trans }}</th>
+                    <th style="text-align:right; padding:10px 12px; font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px">{{ 'dashboard.montant'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservations %}
+                <tr style="border-bottom:1px solid #F8FAFC; transition:background 0.15s" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">
+                    <td style="padding:12px; font-size:14px; font-weight:600; color:#1E293B">
+                        {{ r.logement.titre|length > 30 ? r.logement.titre|slice(0,30) ~ '...' : r.logement.titre }}
+                    </td>
+                    <td style="padding:12px; font-size:14px; color:#374151">
+                        {{ r.voyageur.prenom }} {{ r.voyageur.nom }}
+                    </td>
+                    <td style="padding:12px; font-size:13px; color:#64748B">
+                        {{ r.dateArrivee|date('d/m/Y') }} → {{ r.dateDepart|date('d/m/Y') }}
+                    </td>
+                    <td style="padding:12px">
+                        {% set colors = {
+                            'en_attente': ['#FEF3C7','#92400E'],
+                            'confirme':   ['#D1FAE5','#065F46'],
+                            'annule':     ['#FEE2E2','#991B1B'],
+                            'termine':    ['#EDE9FE','#4C1D95'],
+                        } %}
+                        {% set c = colors[r.statut] ?? ['#F1F5F9','#374151'] %}
+                        <span style="background:{{ c[0] }}; color:{{ c[1] }}; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700">
+                            {{ r.statut|upper }}
+                        </span>
+                    </td>
+                    <td style="padding:12px; text-align:right; font-size:14px; font-weight:700; color:#1E3A5F">
+                        {{ r.montantBase|format_price(r.devise) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    {# Mes logements aperçu #}
+    <div style="background:white; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border:1px solid #F1F5F9">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px">
+            <h3 style="margin:0; font-size:16px; font-weight:700; color:#1E293B">🏠 {{ 'dashboard.stat_logements'|trans }}</h3>
+            <a href="{{ path('owner_logements') }}" style="font-size:13px; color:#2E86AB; text-decoration:none; font-weight:600">{{ 'dashboard.voir_tout'|trans }} →</a>
+        </div>
+
+        {% if logements is empty %}
+        <div style="text-align:center; padding:32px; color:#94A3B8">
+            <div style="font-size:40px; margin-bottom:10px">🏡</div>
+            <p style="margin:0 0 16px; font-size:14px">{{ 'dashboard.aucun_logement'|trans }}</p>
+            <a href="{{ path('owner_logement_new') }}" style="padding:10px 20px; background:#1E3A5F; color:white; border-radius:10px; font-size:13px; font-weight:700">
+                ➕ {{ 'dashboard.creer'|trans }}
+            </a>
+        </div>
+        {% else %}
+            {% for l in logements|slice(0,4) %}
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #F8FAFC">
+                <div style="width:42px; height:42px; border-radius:10px; background:linear-gradient(135deg,#1E3A5F,#2E86AB); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0">
+                    🏠
+                </div>
+                <div style="flex:1; min-width:0">
+                    <div style="font-size:13px; font-weight:600; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">
+                        {{ l.titre }}
+                    </div>
+                    <div style="font-size:12px; color:#64748B">{{ l.ville }} · {{ l.prixParNuit|format_price(l.devise) }}/{{ 'logement.nuit'|trans }}</div>
+                </div>
+                {% set statusColors = {'publie': '#10B981', 'en_attente': '#F0A500', 'brouillon': '#94A3B8', 'suspendu': '#EF4444'} %}
+                <div style="width:8px; height:8px; border-radius:50%; background:{{ statusColors[l.statut] ?? '#94A3B8' }}; flex-shrink:0"></div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

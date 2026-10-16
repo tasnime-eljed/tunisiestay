@@ -1,0 +1,260 @@
+{% extends 'dashboard/base_dashboard.html.twig' %}
+
+{% block role_label %}{{ 'dashboard.voyageur'|trans }}{% endblock %}
+{% block page_title %}{{ 'dashboard.reservations'|trans }}{% endblock %}
+{% block page_subtitle %}{{ 'reservations.historique'|trans }}{% endblock %}
+
+{% block sidebar_nav %}{% include 'dashboard/traveler/_sidebar.html.twig' %}{% endblock %}
+
+{% block content %}
+
+{# Flash messages #}
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+    <div class="ts-flash" style="
+        padding:14px 20px;margin-bottom:16px;border-radius:12px;font-size:14px;font-weight:600;
+        background:{{ type == 'success' ? '#D1FAE5' : '#FEE2E2' }};
+        color:{{ type == 'success' ? '#065F46' : '#991B1B' }};
+        border:1px solid {{ type == 'success' ? '#A7F3D0' : '#FECACA' }};
+        display:flex;align-items:center;gap:10px;
+    ">
+        {{ type == 'success' ? '✅' : '❌' }} {{ message }}
+    </div>
+    {% endfor %}
+{% endfor %}
+
+{% if reservations is empty %}
+<div style="background:white;border-radius:20px;padding:80px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+    <div style="font-size:64px;margin-bottom:20px">📭</div>
+    <h3 style="font-size:20px;font-weight:700;color:#1E293B;margin:0 0 8px">{{ 'reservations.aucune'|trans }}</h3>
+    <p style="color:#64748B;font-size:15px;margin:0 0 24px">{{ 'reservations.aucune_subtitle'|trans }}</p>
+    <a href="{{ path('app_search') }}" style="display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:linear-gradient(135deg,#1E3A5F,#2E86AB);color:white;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none">
+        🔍 {{ 'reservations.trouver_logement'|trans }}
+    </a>
+</div>
+{% else %}
+
+<div style="display:flex;flex-direction:column;gap:14px">
+    {% for r in reservations %}
+    <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #F1F5F9">
+        <div style="display:flex;align-items:center;gap:20px">
+
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#F0A500,#2E86AB);display:flex;align-items:center;justify-content:center;color:white;font-size:20px;flex-shrink:0">
+                🏠
+            </div>
+
+            <div style="flex:1;min-width:0">
+                <div style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:4px">
+                    {{ r.logement.titre }}
+                </div>
+                <div style="font-size:13px;color:#64748B">
+                    📍 {{ r.logement.ville }}
+                </div>
+            </div>
+
+            <div style="text-align:center;padding:0 20px;border-left:1px solid #F1F5F9;border-right:1px solid #F1F5F9">
+                <div style="font-size:13px;color:#94A3B8;margin-bottom:4px">{{ 'dashboard.dates'|trans }}</div>
+                <div style="font-size:13px;font-weight:600;color:#1E293B">
+                    {{ r.dateArrivee|date('d/m') }} → {{ r.dateDepart|date('d/m/Y') }}
+                </div>
+                <div style="font-size:12px;color:#64748B">{{ r.nbNuits }} {{ 'reservations.nb_nuits'|trans }}{{ r.nbNuits > 1 ? 's' : '' }} · {{ r.nbVoyageurs }} {{ 'reservations.pers'|trans }}</div>
+            </div>
+
+            <div style="text-align:center;padding:0 20px;border-right:1px solid #F1F5F9">
+                <div style="font-size:13px;color:#94A3B8;margin-bottom:4px">{{ 'reservations.prix_total'|trans }}</div>
+                <div style="font-size:18px;font-weight:800;color:#1E3A5F">{{ r.montantTotal|format_price(r.devise) }}</div>
+            </div>
+
+            {% set sc = {
+                'en_attente': ['#FEF3C7','#92400E'],
+                'confirme':   ['#D1FAE5','#065F46'],
+                'annule':     ['#FEE2E2','#991B1B'],
+                'terminee':   ['#EDE9FE','#4C1D95'],
+                'terminee':   ['#EDE9FE','#4C1D95'],
+            } %}
+            {% set c = sc[r.statut] ?? ['#F1F5F9','#374151'] %}
+            <div style="text-align:center;min-width:100px">
+                <span style="background:{{ c[0] }};color:{{ c[1] }};padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;display:block">
+                    {{ ('reservations.' ~ r.statut)|trans|upper }}
+                </span>
+            </div>
+
+            {# ACTIONS #}
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:140px">
+                <a href="{{ path('app_logement_show', {id: r.logement.id, slug: r.logement.slug}) }}"
+                   style="padding:8px 14px;background:#EFF6FF;color:#1D4ED8;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;text-align:center">
+                    {{ 'reservations.voir_logement'|trans }}
+                </a>
+
+                {% if r.statut in ['en_attente', 'confirme'] %}
+                {# Bouton Reporter #}
+                <button onclick="openReportModal({{ r.id }}, '{{ r.dateArrivee|date('Y-m-d') }}', '{{ r.dateDepart|date('Y-m-d') }}')"
+                    style="padding:8px 14px;background:#F0F9FF;color:#0369A1;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;text-align:center;width:100%">
+                    📅 {{ 'reservations.reporter'|trans }}
+                </button>
+                {# Bouton Annuler #}
+                <button onclick="openCancelModal({{ r.id }}, '{{ r.logement.titre|e('js') }}')"
+                    style="padding:8px 14px;background:#FEE2E2;color:#991B1B;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;text-align:center;width:100%">
+                    ✕ {{ 'reservations.annuler'|trans }}
+                </button>
+                {% endif %}
+
+                {% if r.statut == 'terminee' %}
+                <a href="{{ path('app_review_new', {id: r.id}) }}"
+                   style="padding:8px 14px;background:#FEF3C7;color:#92400E;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;text-align:center">
+                    ⭐ {{ 'logement.laisser_avis'|trans }}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{# ===== MODAL ANNULATION ===== #}
+<div id="modal-annulation" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+    <div style="background:white;border-radius:20px;padding:32px;max-width:440px;width:100%;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <div style="text-align:center;margin-bottom:24px">
+            <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+            <h3 style="font-size:20px;font-weight:700;color:#1E293B;margin:0 0 8px">{{ 'reservations.confirmer_annulation'|trans }}</h3>
+            <p style="color:#64748B;font-size:14px;margin:0">
+                {{ 'reservations.annuler_sure'|trans }}<br>
+                <strong id="modal-logement-nom" style="color:#1E293B"></strong> ?
+            </p>
+            <p style="color:#EF4444;font-size:13px;margin-top:10px;font-weight:600">
+                ⚠️ {{ 'reservations.action_irreversible'|trans }}
+            </p>
+        </div>
+        <form id="form-annulation" method="POST">
+            <input type="hidden" name="_method" value="POST">
+            <div style="display:flex;gap:12px">
+                <button type="button" onclick="closeModal('modal-annulation')"
+                    style="flex:1;padding:14px;border:2px solid #E2E8F0;border-radius:12px;background:white;color:#374151;font-size:14px;font-weight:700;cursor:pointer">
+                    {{ 'reservations.garder'|trans }}
+                </button>
+                <button type="submit"
+                    style="flex:1;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#EF4444,#DC2626);color:white;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.3)">
+                    {{ 'reservations.oui_annuler'|trans }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ===== MODAL REPORTER ===== #}
+<div id="modal-reporter" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+    <div style="background:white;border-radius:20px;padding:32px;max-width:480px;width:100%;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <div style="margin-bottom:24px">
+            <h3 style="font-size:20px;font-weight:700;color:#1E293B;margin:0 0 6px">📅 {{ 'reservations.reporter'|trans }}</h3>
+            <p style="color:#64748B;font-size:14px;margin:0">{{ 'reservations.nouvelles_dates'|trans }}</p>
+        </div>
+        <form id="form-reporter" method="POST">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;letter-spacing:0.5px">{{ 'reservations.nouvelle_arrivee'|trans }} *</label>
+                    <input type="date" name="nouvelle_arrivee" id="input-arrivee" required
+                        style="width:100%;padding:12px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit"
+                        onfocus="this.style.borderColor='#1E3A5F'"
+                        onblur="this.style.borderColor='#E2E8F0'">
+                </div>
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;letter-spacing:0.5px">{{ 'reservations.nouveau_depart'|trans }} *</label>
+                    <input type="date" name="nouveau_depart" id="input-depart" required
+                        style="width:100%;padding:12px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit"
+                        onfocus="this.style.borderColor='#1E3A5F'"
+                        onblur="this.style.borderColor='#E2E8F0'">
+                </div>
+            </div>
+            <div id="reporter-recap" style="display:none;padding:14px;background:#F0F9FF;border-radius:10px;border:1px solid #BAE6FD;margin-bottom:20px;font-size:13px;color:#0369A1;font-weight:600">
+            </div>
+            <p style="color:#94A3B8;font-size:12px;margin:0 0 20px">
+                ℹ️ {{ 'reservations.info_report'|trans }}
+            </p>
+            <div style="display:flex;gap:12px">
+                <button type="button" onclick="closeModal('modal-reporter')"
+                    style="flex:1;padding:14px;border:2px solid #E2E8F0;border-radius:12px;background:white;color:#374151;font-size:14px;font-weight:700;cursor:pointer">
+                    {{ 'reviews.annuler'|trans }}
+                </button>
+                <button type="submit"
+                    style="flex:1;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#1E3A5F,#2E86AB);color:white;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(30,58,95,0.3)">
+                    📅 {{ 'reservations.confirmer_report'|trans }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openCancelModal(id, nom) {
+    document.getElementById('form-annulation').action = '/voyageur/reservation/' + id + '/annuler';
+    document.getElementById('modal-logement-nom').textContent = nom;
+    showModal('modal-annulation');
+}
+
+function openReportModal(id, arrivee, depart) {
+    document.getElementById('form-reporter').action = '/voyageur/reservation/' + id + '/reporter';
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('input-arrivee').min = today;
+    document.getElementById('input-arrivee').value = arrivee;
+    document.getElementById('input-depart').value = depart;
+    updateRecap();
+    showModal('modal-reporter');
+}
+
+function showModal(id) {
+    const modal = document.getElementById(id);
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// Fermer en cliquant en dehors
+document.addEventListener('click', function(e) {
+    ['modal-annulation', 'modal-reporter'].forEach(function(id) {
+        const modal = document.getElementById(id);
+        if (e.target === modal) closeModal(id);
+    });
+});
+
+// Calcul du récap dates
+function updateRecap() {
+    const a = document.getElementById('input-arrivee').value;
+    const d = document.getElementById('input-depart').value;
+    const recap = document.getElementById('reporter-recap');
+    if (a && d) {
+        const diff = Math.ceil((new Date(d) - new Date(a)) / (1000 * 60 * 60 * 24));
+        if (diff > 0) {
+            recap.style.display = 'block';
+            recap.textContent = '📅 ' + diff + ' nuit' + (diff > 1 ? 's' : '') + ' — du ' + formatDate(a) + ' au ' + formatDate(d);
+            document.getElementById('input-depart').min = a;
+        } else {
+            recap.style.display = 'none';
+        }
+    }
+}
+
+function formatDate(str) {
+    const d = new Date(str);
+    const locale = '{{ app.request.locale }}' === 'ar' ? 'ar-TN' : ('{{ app.request.locale }}' === 'en' ? 'en-GB' : 'fr-FR');
+    return d.toLocaleDateString(locale, {day: '2-digit', month: 'short', year: 'numeric'});
+}
+
+document.getElementById('input-arrivee').addEventListener('change', updateRecap);
+document.getElementById('input-depart').addEventListener('change', updateRecap);
+
+// Auto-dismiss flash messages
+document.querySelectorAll('.ts-flash').forEach(function(el) {
+    setTimeout(function() {
+        el.style.transition = 'opacity 0.5s';
+        el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 500);
+    }, 4000);
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% set route = app.request.attributes.get('_route') %}
+{% set nav = [
+    ['dashboard.accueil', '📊', 'traveler_dashboard'],
+    ['dashboard.reservations', '📅', 'traveler_reservations'],
+    ['dashboard.favoris', '❤️', 'traveler_favoris'],
+    ['dashboard.avis', '⭐', 'traveler_avis'],
+    ['dashboard.profil', '👤', 'traveler_profil'],
+] %}
+{% for item in nav %}
+    <a href="{{ path(item[2]) }}" style="
+        display:flex; align-items:center; gap:12px;
+        padding:11px 14px; border-radius:10px;
+        color:{{ route == item[2] ? 'white' : 'rgba(255,255,255,0.6)' }};
+        background:{{ route == item[2] ? 'rgba(255,255,255,0.12)' : 'transparent' }};
+        text-decoration:none; font-size:14px; margin-bottom:4px;
+        border-left:{{ route == item[2] ? '3px solid #2E86AB' : '3px solid transparent' }};
+        font-weight:{{ route == item[2] ? '600' : '400' }};
+        transition:all 0.2s;
+    "
+    onmouseover="if('{{ route }}' !== '{{ item[2] }}'){this.style.background='rgba(255,255,255,0.07)';this.style.color='white'}"
+    onmouseout="if('{{ route }}' !== '{{ item[2] }}'){this.style.background='transparent';this.style.color='rgba(255,255,255,0.6)'}">
+        <span style="font-size:18px; width:22px; text-align:center">{{ item[1] }}</span>
+        <span>{{ item[0]|trans }}</span>
+    </a>
+{% endfor %}

@@ -1,0 +1,22 @@
+
+> dev
+> encore dev
+
+Running webpack ...
+
+[43m[30m WARN [39m[49m [33mCompiled with 1 warnings[39m[90m19:37:07[39m
+
+This dependency was not found:
+
+* crypto in ./node_modules/loader-utils/lib/getHashDigest.js
+
+To install it, you can run: npm install --save crypto
+[41m[30m ERROR [39m[49m [31mFailed to compile with 1 errors[39m[90m19:37:08[39m
+
+This dependency was not found:
+
+* path in ./node_modules/loader-utils/lib/interpolateName.js
+
+To install it, you can run: npm install --save path
+Entrypoint [1mapp[39m[22m [1m[33m[big][39m[22m 1.9 MiB = [1m[32mruntime.js[39m[22m 14.4 KiB [1m[32mvendors-node_modules_symfony_stimulus-bridge_lazy-controller-loader_js.js[39m[22m 1.83 MiB [1m[32mapp.css[39m[22m 47.9 KiB [1m[32mapp.js[39m[22m 6.58 KiB
+webpack compiled with [1m[31m4 errors[39m[22m and [1m[33m1 warning[39m[22m

@@ -1,0 +1,201 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'auth.register'|trans }} — TunisiaStay{% endblock %}
+
+{% block body %}
+
+<div style="
+    min-height: 100vh;
+    background-image: url('https://i.pinimg.com/736x/47/3c/88/473c8868614ef415bdaff53831fb7b94.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+">
+    <div style="position:absolute; inset:0; background:linear-gradient(135deg,rgba(10,25,47,0.78),rgba(46,134,171,0.65))"></div>
+
+    <div style="
+        position:relative; z-index:10;
+        width:100%; max-width:460px; margin:20px;
+        background:rgba(255,255,255,0.12);
+        backdrop-filter:blur(20px);
+        -webkit-backdrop-filter:blur(20px);
+        border:1px solid rgba(255,255,255,0.25);
+        border-radius:24px;
+        padding:32px 36px;
+        box-shadow:0 25px 50px rgba(0,0,0,0.4);
+    ">
+
+        <div style="text-align:center; margin-bottom:22px">
+            <h1 style="color:white; font-size:26px; font-weight:800; letter-spacing:3px; margin:0">
+                TUNISIASTAY
+            </h1>
+            <p style="color:rgba(255,255,255,0.65); font-size:13px; margin-top:6px">
+                {{ 'auth.creation_gratuite'|trans }}
+            </p>
+        </div>
+
+        {# ✅ Flash messages #}
+        {% for message in app.flashes('success') %}
+            <div style="background:rgba(34,197,94,0.2); border:1px solid rgba(34,197,94,0.4); color:#86efac; padding:12px 16px; border-radius:12px; margin-bottom:16px; font-size:13px">
+                ✅ {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding:12px 16px; border-radius:12px; margin-bottom:16px; font-size:13px">
+                ⚠️ {{ message }}
+            </div>
+        {% endfor %}
+
+        {# ✅ form_start avec CSRF activé #}
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+        {# ✅ Erreurs globales du formulaire #}
+        {% if form.vars.submitted and not form.vars.valid %}
+            <div style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding:12px 16px; border-radius:12px; margin-bottom:16px; font-size:13px; line-height:1.6">
+                {% for error in form.vars.errors %}
+                    <div>⚠️ {{ error.message }}</div>
+                {% endfor %}
+                {% for error in form.prenom.vars.errors %}
+                    <div>⚠️ {{ 'auth.prenom'|trans }} : {{ error.message }}</div>
+                {% endfor %}
+                {% for error in form.nom.vars.errors %}
+                    <div>⚠️ {{ 'auth.nom'|trans }} : {{ error.message }}</div>
+                {% endfor %}
+                {% for error in form.email.vars.errors %}
+                    <div>⚠️ {{ 'auth.email'|trans }} : {{ error.message }}</div>
+                {% endfor %}
+                {% for error in form.plainPassword.vars.errors %}
+                    <div>⚠️ {{ 'auth.password'|trans }} : {{ error.message }}</div>
+                {% endfor %}
+                {% for error in form.plainPassword.first.vars.errors %}
+                    <div>⚠️ {{ 'auth.password'|trans }} : {{ error.message }}</div>
+                {% endfor %}
+                {% for error in form.plainPassword.second.vars.errors %}
+                    <div>⚠️ {{ 'auth.confirmer'|trans }} : {{ error.message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# ✅ Prénom + Nom #}
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px">
+            <div>
+                <label style="color:rgba(255,255,255,0.8); font-size:11px; font-weight:700; display:block; margin-bottom:5px; letter-spacing:1px">{{ 'auth.prenom'|trans|upper }}</label>
+                {{ form_widget(form.prenom, {
+                    'attr': {
+                        'style': 'width:100%; padding:11px 14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:10px; color:white; font-size:13px; outline:none; box-sizing:border-box;',
+                        'onfocus': "this.style.background='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.6)'",
+                        'onblur': "this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.25)'"
+                    }
+                }) }}
+            </div>
+            <div>
+                <label style="color:rgba(255,255,255,0.8); font-size:11px; font-weight:700; display:block; margin-bottom:5px; letter-spacing:1px">{{ 'auth.nom'|trans|upper }}</label>
+                {{ form_widget(form.nom, {
+                    'attr': {
+                        'style': 'width:100%; padding:11px 14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:10px; color:white; font-size:13px; outline:none; box-sizing:border-box;',
+                        'onfocus': "this.style.background='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.6)'",
+                        'onblur': "this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.25)'"
+                    }
+                }) }}
+            </div>
+        </div>
+
+        {# ✅ Email #}
+        <div style="margin-bottom:12px">
+            <label style="color:rgba(255,255,255,0.8); font-size:11px; font-weight:700; display:block; margin-bottom:5px; letter-spacing:1px">{{ 'auth.email'|trans|upper }}</label>
+            {{ form_widget(form.email, {
+                'attr': {
+                    'style': 'width:100%; padding:11px 14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:10px; color:white; font-size:13px; outline:none; box-sizing:border-box;',
+                    'onfocus': "this.style.background='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.6)'",
+                    'onblur': "this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.25)'"
+                }
+            }) }}
+        </div>
+
+        {# ✅ Rôle — boutons radio custom (le widget original est caché) #}
+        <div style="margin-bottom:12px">
+            <label style="color:rgba(255,255,255,0.8); font-size:11px; font-weight:700; display:block; margin-bottom:8px; letter-spacing:1px">{{ 'auth.je_suis'|trans|upper }}</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                <label id="lbl-voyageur"
+                       onclick="document.getElementById('lbl-voyageur').style.borderColor='rgba(240,165,0,0.9)';document.getElementById('lbl-owner').style.borderColor='rgba(255,255,255,0.25)'"
+                       style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:rgba(255,255,255,0.1); border:2px solid rgba(240,165,0,0.9); border-radius:12px; cursor:pointer; transition:all 0.3s">
+                    <input type="radio"
+                           name="{{ form.role.vars.full_name }}"
+                           value="ROLE_TRAVELER"
+                           checked
+                           style="width:16px; height:16px; accent-color:#F0A500">
+                    <span style="font-size:20px">🧳</span>
+                    <span style="color:white; font-weight:700; font-size:13px">{{ 'auth.voyageur'|trans }}</span>
+                </label>
+                <label id="lbl-owner"
+                       onclick="document.getElementById('lbl-owner').style.borderColor='rgba(240,165,0,0.9)';document.getElementById('lbl-voyageur').style.borderColor='rgba(255,255,255,0.25)'"
+                       style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.25); border-radius:12px; cursor:pointer; transition:all 0.3s">
+                    <input type="radio"
+                           name="{{ form.role.vars.full_name }}"
+                           value="ROLE_OWNER"
+                           style="width:16px; height:16px; accent-color:#F0A500">
+                    <span style="font-size:20px">🏠</span>
+                    <span style="color:white; font-weight:700; font-size:13px">{{ 'auth.proprietaire'|trans }}</span>
+                </label>
+            </div>
+        </div>
+
+        {# ✅ Mot de passe + Confirmer #}
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px">
+            <div>
+                <label style="color:rgba(255,255,255,0.8); font-size:11px; font-weight:700; display:block; margin-bottom:5px; letter-spacing:1px">{{ 'auth.password'|trans|upper }}</label>
+                {{ form_widget(form.plainPassword.first, {
+                    'attr': {
+                        'style': 'width:100%; padding:11px 14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:10px; color:white; font-size:13px; outline:none; box-sizing:border-box;',
+                        'onfocus': "this.style.background='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.6)'",
+                        'onblur': "this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.25)'"
+                    }
+                }) }}
+            </div>
+            <div>
+                <label style="color:rgba(255,255,255,0.8); font-size:11px; font-weight:700; display:block; margin-bottom:5px; letter-spacing:1px">{{ 'auth.confirmer'|trans|upper }}</label>
+                {{ form_widget(form.plainPassword.second, {
+                    'attr': {
+                        'style': 'width:100%; padding:11px 14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:10px; color:white; font-size:13px; outline:none; box-sizing:border-box;',
+                        'onfocus': "this.style.background='rgba(255,255,255,0.2)';this.style.borderColor='rgba(255,255,255,0.6)'",
+                        'onblur': "this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.25)'"
+                    }
+                }) }}
+            </div>
+        </div>
+
+        {# ✅ CSRF token caché — OBLIGATOIRE #}
+        {{ form_widget(form._token) }}
+
+        {# ✅ Bouton submit #}
+        <button type="submit"
+                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 15px 35px rgba(240,165,0,0.55)'"
+                onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 25px rgba(240,165,0,0.4)'"
+                style="width:100%; padding:14px; background:linear-gradient(135deg,#F0A500,#e8950a); color:white; font-size:15px; font-weight:800; border:none; border-radius:12px; cursor:pointer; letter-spacing:1.5px; box-shadow:0 8px 25px rgba(240,165,0,0.4); transition:all 0.3s; margin-top:16px;">
+            {{ 'auth.creer_compte'|trans|upper }} 🚀
+        </button>
+
+        {# ✅ render_rest false = empêche le dropdown "Je suis" en double #}
+        {{ form_end(form, {'render_rest': false}) }}
+
+        <div style="display:flex; align-items:center; gap:12px; margin:18px 0">
+            <div style="flex:1; height:1px; background:rgba(255,255,255,0.2)"></div>
+            <span style="color:rgba(255,255,255,0.45); font-size:12px">{{ 'auth.ou'|trans }}</span>
+            <div style="flex:1; height:1px; background:rgba(255,255,255,0.2)"></div>
+        </div>
+
+        <p style="text-align:center; color:rgba(255,255,255,0.65); font-size:14px; margin:0">
+            {{ 'auth.deja_compte'|trans }}
+            <a href="{{ path('app_login') }}" style="color:#F0A500; font-weight:700; text-decoration:none; margin-left:4px">
+                {{ 'auth.login'|trans }}
+            </a>
+        </p>
+
+    </div>
+</div>
+
+{% endblock %}
